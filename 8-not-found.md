@@ -6,7 +6,17 @@
 
 ---
 
-## Step 1: `notFound.ts` file বানানো
+## Step 1: `http-status-codes` install করা
+
+Status code-এর জন্য এখানে [`http-status-codes`](https://www.npmjs.com/package/http-status-codes) package ব্যবহার করব:
+
+```bash
+npm i http-status-codes
+```
+
+---
+
+## Step 2: `notFound.ts` file বানানো
 
 এটাও একটা middleware, তাই `middlewares` folder-এ রাখব।
 
@@ -20,7 +30,7 @@ src/app/middlewares/
 
 ```ts
 import type { Request, Response } from "express";
-import httpStatus from "http-status";
+import httpStatus from "http-status-codes";
 
 const notFound = (req: Request, res: Response) => {
 	res.status(httpStatus.NOT_FOUND).json({
@@ -34,7 +44,7 @@ export default notFound;
 
 ---
 
-## Step 2: `app.ts`-এ যোগ করা
+## Step 3: `app.ts`-এ যোগ করা
 
 `src/app.ts`
 
