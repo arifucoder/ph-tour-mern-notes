@@ -18,6 +18,7 @@ Response-এ `201`, `400` এর মতো সংখ্যা সরাসরি
 
 ```bash
 npm i http-status
+npm i http-status-codes // recommended
 ```
 
 এতে কোড পড়তে সহজ হয়। যেমন `201` না লিখে `httpStatus.CREATED` লিখব।
