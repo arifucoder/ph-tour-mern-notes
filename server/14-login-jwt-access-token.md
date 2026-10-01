@@ -252,9 +252,12 @@ User private route-এ request পাঠানোর সময় token-টা *
 
 ```ts
 import type { NextFunction, Request, Response } from "express";
+import httpStatus from "http-status-codes";
 import type { JwtPayload } from "jsonwebtoken";
 import { envVars } from "../config/env";
 import AppError from "../errorHelpers/AppError";
+import { IsActive } from "../modules/user/user.interface";
+import { User } from "../modules/user/user.model";
 import { verifyToken } from "../utils/jwt";
 
 export const checkAuth =
@@ -271,7 +274,22 @@ export const checkAuth =
 			// ২. token সঠিক কিনা (ভুল বা expired হলে এখানেই error)
 			const verifiedToken = verifyToken(accessToken, envVars.JWT_ACCESS_SECRET) as JwtPayload;
 
-			// ৩. এই role-এর অনুমতি আছে কিনা
+			// ৩. user এখনও database-এ আছে আর active আছে কিনা
+			const isUserExist = await User.findOne({ email: verifiedToken.email });
+
+			if (!isUserExist) {
+				throw new AppError(httpStatus.BAD_REQUEST, "User does not exist");
+			}
+
+			if (isUserExist.isActive === IsActive.BLOCKED || isUserExist.isActive === IsActive.INACTIVE) {
+				throw new AppError(httpStatus.BAD_REQUEST, `User is ${isUserExist.isActive}`);
+			}
+
+			if (isUserExist.isDeleted) {
+				throw new AppError(httpStatus.BAD_REQUEST, "User is deleted");
+			}
+
+			// ৪. এই role-এর অনুমতি আছে কিনা
 			if (!authRoles.includes(verifiedToken.role)) {
 				throw new AppError(403, "You are not permitted to view this route!");
 			}
@@ -288,6 +306,7 @@ export const checkAuth =
 
 - **`if (!accessToken)` কেন?** `req.headers.authorization`-এর type `string | undefined`। এই check না দিলে TypeScript জানে না token আছে কিনা, তাই `verifyToken`-এ error দেয়।
 - **`jwt.verify()`**: Token ভুল হলে, secret না মিললে বা মেয়াদ শেষ (expired) হলে এটা নিজেই error `throw` করে। তাই আলাদা করে `if (!verifiedToken)` check করার দরকার নেই।
+- **User-এর অবস্থা আবার check কেন?** Token-এর ভিতরের data login-এর সময়কার। ধরো কেউ login করে ১ দিনের token পেল, তারপর admin তাকে block বা delete করে দিল। তার token কিন্তু তখনও valid। এই check না থাকলে সে blocked হয়েও token দিয়ে সব private route ব্যবহার করতে পারত। তাই প্রতিটা request-এ database থেকে user-এর বর্তমান অবস্থা দেখে নিচ্ছি।
 - **`...authRoles`**: একটা route একাধিক role-এর জন্য খোলা থাকতে পারে (যেমন admin আর super admin দুজনেই)। তাই rest parameter দিয়ে যতগুলো খুশি role নেওয়া যায়। `authRoles.includes(verifiedToken.role)` check করে user-এর role তালিকায় আছে কিনা।
 - **`401` আর `403`**: Token না থাকলে বা ভুল হলে `401` (Unauthorized, মানে তুমি কে জানি না)। Token ঠিক আছে কিন্তু অনুমতি নেই, তখন `403` (Forbidden)।
 - **`req.user = verifiedToken`**: Token-এর data `req`-এ রেখে দিচ্ছি, যাতে পরে controller জানতে পারে কে request করছে।
