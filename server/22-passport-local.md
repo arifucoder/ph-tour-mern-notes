@@ -1,4 +1,4 @@
-# 24 — Passport Local দিয়ে Credentials Login
+# Passport Local দিয়ে Credentials Login
 
 আগে email + password login-এর সব business logic ছিল `auth.service.ts`-এর `credentialsLogin`-এ। এখন সেই কাজটা **`passport-local` strategy** দিয়ে করব। Google login-এর মতো local login-ও তখন Passport-এর মাধ্যমে চলবে।
 
