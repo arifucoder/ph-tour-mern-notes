@@ -85,7 +85,7 @@ type AsyncHandler = (req: Request, res: Response, next: NextFunction) => Promise
 export const catchAsync =
 	(fn: AsyncHandler) => (req: Request, res: Response, next: NextFunction) => {
 		Promise.resolve(fn(req, res, next)).catch((err: any) => {
-			// console.log(err); shudumatro dev environment e deya jabe ei console log
+			// console.log(err); shudumatro dev environment e deya jabe ei console log r global error handler er advanced global error handler a already console log kora hoiche
 			next(err);
 		});
 	};
