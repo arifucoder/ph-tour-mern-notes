@@ -13,7 +13,8 @@
 src/app/
 ├── constants.ts                  ← excludeField
 ├── utils/
-│   └── QueryBuilder.ts           ← নতুন
+│   ├── QueryBuilder.ts           ← নতুন
+│   └── slug.ts                   ← নতুন (slugify + generateUniqueSlug)
 ├── routes/index.ts               ← division আর tour route যোগ
 └── modules/
     ├── division/
@@ -51,7 +52,7 @@ export interface IDivision {
 
 ### Slug কী?
 
-Slug হলো নাম থেকে বানানো URL-friendly text: সব lowercase, space-এর জায়গায় `-`।
+Slug হলো নাম থেকে বানানো URL-friendly text: সব lowercase, space-এর জায়গায় `-`, আর `'`, `&`, `!`-এর মতো special character বাদ।
 
 ```
 name = "Chattogram"
@@ -67,7 +68,7 @@ slug = "chattogram-division"
 
 Slug client পাঠাবে না, **name থেকে auto-generate** হবে (Step 3)।
 
-> ⚠️ Slug-এর শেষে আমরা নিজেরাই `-division` যোগ করি। তাই name-এ শুধু `"Chattogram"` দিতে হবে। `"Chattogram Division"` দিলে slug হয়ে যাবে `chattogram-division-division`।
+> 💡 Slug-এর শেষে আমরা নিজেরাই `-division` যোগ করি। কেউ name-এ `"Chattogram Division"` দিলেও helper আগে শেষের "division" সরিয়ে নেয়, তাই `chattogram-division-division` হবে না, হবে `chattogram-division` (Step 3)।
 
 ---
 
@@ -137,28 +138,151 @@ Hook-এর ভেতরে `this` দিয়ে document (বা query) acces
 
 > ⚠️ **Bug fix — নিজের slug:** Update-এর সময় একই name আবার পাঠালে `Division.exists({ slug })` **নিজের document-কেই** খুঁজে পায়, ফলে slug অকারণে বদলে `dhaka-division-1` হয়ে যায়। তাই check-এর সময় নিজের `_id` বাদ দিয়েছি: `_id: { $ne: currentId }`।
 
-> 💡 **ছোট improve:** `split(" ").join("-")`-এর বদলে `trim()` আর `replace(/\s+/g, "-")` দিয়েছি। এতে শুরু/শেষের space বা পাশাপাশি দুটো space থাকলেও `--` হবে না।
-
 > 💡 **`next` সরিয়েছি:** `async` function হলে Mongoose নিজেই Promise শেষ হওয়ার জন্য অপেক্ষা করে, তাই `next()` লাগে না। Async আর `next` একসাথে দেওয়া অপ্রয়োজনীয়, আর Mongoose-এর নতুন version-এ async hook `next` ছাড়া লেখাই নিয়ম।
 
-### Code
+### সমস্যা: শুধু lowercase + dash যথেষ্ট না
+
+Teacher-এর `toLowerCase().split(" ").join("-")` শুধু space বদলায়। বাকি সব character URL-এ থেকে যায়:
+
+| Name / Title | শুধু lowercase + dash | সমস্যা |
+|---|---|---|
+| `Cox's Bazar` | `cox's-bazar` | `'` URL-এ `%27` হয়ে যায় |
+| `Sylhet & Srimangal` | `sylhet-&-srimangal` | `&` URL-এ query ভেঙে দেয় |
+| `Bandarban!!  Trip` | `bandarban!!--trip` | `!` আর পাশাপাশি দুটো `-` |
+| `Café Tour` | `café-tour` | accent-যুক্ত অক্ষর |
+
+তাই slug বানানোর জন্য একটা পরিষ্কার **`slugify`** function, আর duplicate check-সহ পুরো slug বানানোর একটা **`generateUniqueSlug`** helper বানাব। Division, Tour, পরে আরও যেকোনো module সবাই এটাই ব্যবহার করবে, তাই `utils`-এ রাখি।
+
+### `slugify` — ধাপে ধাপে কী করে
+
+উদাহরণ: `"  Cox's Bazar & Café!! "`
+
+| ধাপ | Code | ফলাফল |
+|---|---|---|
+| 1 | `.normalize("NFKD")` | `é` ভেঙে `e` + accent চিহ্ন (দুটো আলাদা character) |
+| 2 | `.replace(/[\u0300-\u036f]/g, "")` | accent চিহ্ন মুছে দেয় → `Cafe` |
+| 3 | `.toLowerCase()` | `"  cox's bazar & cafe!! "` |
+| 4 | `.trim()` | শুরু/শেষের space বাদ → `"cox's bazar & cafe!!"` |
+| 5 | `` .replace(/['"`‘’“”]/g, "") `` | quote/apostrophe বাদ → `"coxs bazar & cafe!!"` |
+| 6 | `.replace(/&/g, " and ")` | `&` → `and` → `"coxs bazar  and  cafe!!"` |
+| 7 | `.replace(/[^a-z0-9\s-]/g, " ")` | অক্ষর, সংখ্যা, space, `-` ছাড়া সব space → `"coxs bazar  and  cafe  "` |
+| 8 | `.replace(/[\s_-]+/g, "-")` | এক বা একাধিক space/`_`/`-` মিলে একটা `-` → `"coxs-bazar-and-cafe-"` |
+| 9 | `.replace(/^-+\|-+$/g, "")` | শুরু/শেষের `-` বাদ → **`"coxs-bazar-and-cafe"`** ✅ |
+
+> ⚠️ **Bangla বা অন্য ভাষার নাম:** ধাপ 7-এ `a-z0-9`-এর বাইরের সব character মুছে যায়। তাই name শুধু বাংলায় (`"ঢাকা"`) দিলে slug হয়ে যায় খালি string (`""`)। এজন্য `generateUniqueSlug`-এ খালি slug হলে error দিই — name-এ English অক্ষর বা সংখ্যা থাকতেই হবে।
+
+### `generateUniqueSlug` — পুরো slug বানানো
+
+এই helper তিনটা কাজ করে:
+1. `slugify` দিয়ে পরিষ্কার করা
+2. দরকার হলে `suffix` যোগ করা (division-এর জন্য `-division`)
+3. DB-তে আগে থেকে থাকলে `-1`, `-2` যোগ করা (নিজের `_id` বাদ দিয়ে)
+
+**Suffix দুবার হওয়া আটকানো:** কেউ `"Chattogram Division"` দিলে slugify-এর পর হয় `chattogram-division`, তারপর আবার `-division` যোগ করলে `chattogram-division-division`। তাই suffix যোগ করার আগে শেষে থাকা suffix সরিয়ে নিই:
+
+```
+"Chattogram"          → chattogram          → chattogram-division ✅
+"Chattogram Division" → chattogram-division → chattogram → chattogram-division ✅
+```
+
+> ✏️ **তোমার দেওয়া code থেকে যা বদলেছি:**
+> - তোমার version-এ `Tour.exists` hard-coded ছিল, অথচ ভেতরে division-এর logic (`-division` সরানো, "Invalid division name" message)। একই function দুই model-এ ব্যবহার করা যেত না। তাই **model আর suffix parameter** হিসেবে নিয়েছি, একটাই helper সবার জন্য।
+> - `throw new Error` → `AppError(400)`। নাহলে globalErrorHandler 500 পাঠাত, অথচ এটা client-এর দেওয়া ভুল name।
+> - `/-?division$/` → `(^|-)division$`। পুরোনোটা `"subdivision"`-এর শেষের `division`-ও কেটে দিত (`sub` বাকি থাকত)। নতুনটা শুধু আলাদা শব্দ হিসেবে থাকা `division` কাটে।
+> - `excludeId`-এর type `unknown`, কারণ update hook-এ `getQuery()._id` string বা ObjectId দুটোই হতে পারে।
+> - Comment `cox-bazar-tour-1` ঠিক ছিল না। Apostrophe মুছে যায় বলে আসলে হয় `coxs-bazar-tour-1`।
+
+### Code: `src/app/utils/slug.ts`
 
 ```ts
-// src/app/modules/division/division.model.ts (schema-র নিচে, model-এর আগে)
+// src/app/utils/slug.ts
+import httpStatus from "http-status-codes";
+import AppError from "../errorHelpers/AppError";
+
+export const slugify = (text: string): string =>
+	text
+		.normalize("NFKD") // é → e + accent
+		.replace(/[\u0300-\u036f]/g, "") // accent চিহ্ন বাদ
+		.toLowerCase()
+		.trim()
+		.replace(/['"`‘’“”]/g, "") // quote/apostrophe বাদ: cox's → coxs
+		.replace(/&/g, " and ") // & → and
+		.replace(/[^a-z0-9\s-]/g, " ") // অক্ষর, সংখ্যা, space, - ছাড়া সব বাদ
+		.replace(/[\s_-]+/g, "-") // space/underscore/dash → একটা -
+		.replace(/^-+|-+$/g, ""); // শুরু/শেষের - বাদ
+
+// যেকোনো Mongoose model যার exists() আছে (Division, Tour...)
+interface ISlugModel {
+	exists(filter: Record<string, unknown>): PromiseLike<unknown>;
+}
+
+interface IGenerateSlugOptions {
+	suffix?: string; // "division" → "dhaka-division"
+	excludeId?: unknown; // update-এর সময় নিজের _id, যাতে নিজের slug-কে duplicate না ভাবে
+}
+
+export const generateUniqueSlug = async (
+	model: ISlugModel,
+	text: string,
+	options: IGenerateSlugOptions = {},
+): Promise<string> => {
+	const { suffix, excludeId } = options;
+
+	let cleaned = slugify(text);
+
+	// "chattogram-division" + suffix "division" → আগে "chattogram" বানাই, যাতে দুবার না হয়
+	if (suffix) {
+		cleaned = cleaned.replace(new RegExp(`(^|-)${suffix}$`), "");
+	}
+
+	if (!cleaned) {
+		throw new AppError(
+			httpStatus.BAD_REQUEST,
+			"Cannot generate slug from this name. Please include English letters or numbers.",
+		);
+	}
+
+	const baseSlug = suffix ? `${cleaned}-${suffix}` : cleaned;
+	let slug = baseSlug;
+	let counter = 1;
+
+	while (
+		await model.exists({
+			slug,
+			...(excludeId ? { _id: { $ne: excludeId } } : {}),
+		})
+	) {
+		slug = `${baseSlug}-${counter++}`; // dhaka-division-1, coxs-bazar-tour-1
+	}
+
+	return slug;
+};
+```
+
+- **`ISlugModel`**: helper-কে কোনো নির্দিষ্ট model (Tour/Division) জানতে হয় না, শুধু এমন কিছু লাগে যার `exists()` method আছে। সব Mongoose model-এই এটা আছে, তাই `Division`, `Tour` যেকোনোটা পাঠানো যায়।
+- **`...(excludeId ? { _id: { $ne: excludeId } } : {})`**: `excludeId` থাকলে `_id` condition যোগ হয়, না থাকলে খালি object spread হয় (কিছুই যোগ হয় না)।
+- Hook-এর ভেতরে `AppError` throw করলেও কোনো সমস্যা নেই: `Division.create()` সেই error নিয়ে reject হয় → `catchAsync` → globalErrorHandler → 400।
+
+### Code: Division-এর Hook
+
+Helper থাকায় hook এখন অনেক ছোট:
+
+```ts
+// src/app/modules/division/division.model.ts
+import { model, Schema } from "mongoose";
+import { generateUniqueSlug } from "../../utils/slug";
+import type { IDivision } from "./division.interface";
+
+// ... divisionSchema (Step 2-এর মতোই)
 
 // Create / save-এর সময়
 divisionSchema.pre("save", async function () {
 	if (!this.isModified("name")) return; // name না বদলালে slug-ও বদলাবে না
 
-	const baseSlug = `${this.name.trim().toLowerCase().replace(/\s+/g, "-")}-division`;
-	let slug = baseSlug;
-	let counter = 1;
-
-	while (await Division.exists({ slug, _id: { $ne: this._id } })) {
-		slug = `${baseSlug}-${counter++}`; // dhaka-division-1, dhaka-division-2
-	}
-
-	this.slug = slug;
+	this.slug = await generateUniqueSlug(Division, this.name, {
+		suffix: "division",
+		excludeId: this._id,
+	});
 });
 
 // findByIdAndUpdate / findOneAndUpdate-এর সময়
@@ -167,22 +291,24 @@ divisionSchema.pre("findOneAndUpdate", async function () {
 
 	if (!division?.name) return; // name update না হলে কিছু করার নেই
 
-	const currentId = this.getQuery()._id; // যে division update হচ্ছে
+	division.slug = await generateUniqueSlug(Division, division.name, {
+		suffix: "division",
+		excludeId: this.getQuery()._id, // যে division update হচ্ছে
+	});
 
-	const baseSlug = `${division.name.trim().toLowerCase().replace(/\s+/g, "-")}-division`;
-	let slug = baseSlug;
-	let counter = 1;
-
-	while (await Division.exists({ slug, _id: { $ne: currentId } })) {
-		slug = `${baseSlug}-${counter++}`;
-	}
-
-	division.slug = slug;
 	this.setUpdate(division); // নতুন slug সহ update object বসিয়ে দেওয়া
 });
 
 export const Division = model<IDivision>("Division", divisionSchema);
 ```
+
+| Name | Slug |
+|---|---|
+| `Dhaka` | `dhaka-division` |
+| `Dhaka` (আবার, অন্য division) | `dhaka-division-1` |
+| `Chattogram Division` | `chattogram-division` |
+| `Cox's Bazar` | `coxs-bazar-division` |
+| `ঢাকা` | ❌ 400 — "Cannot generate slug..." |
 
 - `this.isModified("name")`: name নতুন বা বদলেছে কিনা। Create-এর সময় সবসময় `true`।
 - `this.getUpdate()`: update-এ পাঠানো data (যেমন `{ name: "Sylhet" }`)।
@@ -523,6 +649,7 @@ division: { type: Schema.Types.ObjectId, ref: "Division", required: true },
 ```ts
 // src/app/modules/tour/tour.model.ts
 import { model, Schema } from "mongoose";
+import { generateUniqueSlug } from "../../utils/slug";
 import type { ITour, ITourType } from "./tour.interface";
 
 /* ---------------------- TOUR TYPE ---------------------- */
@@ -576,15 +703,7 @@ const tourSchema = new Schema<ITour>(
 tourSchema.pre("save", async function () {
 	if (!this.isModified("title")) return;
 
-	const baseSlug = this.title.trim().toLowerCase().replace(/\s+/g, "-");
-	let slug = baseSlug;
-	let counter = 1;
-
-	while (await Tour.exists({ slug, _id: { $ne: this._id } })) {
-		slug = `${baseSlug}-${counter++}`; // coxs-bazar-trip-1
-	}
-
-	this.slug = slug;
+	this.slug = await generateUniqueSlug(Tour, this.title, { excludeId: this._id });
 });
 
 // Update-এর সময় title বদলালে slug-ও বদলাবে
@@ -593,24 +712,22 @@ tourSchema.pre("findOneAndUpdate", async function () {
 
 	if (!tour?.title) return;
 
-	const currentId = this.getQuery()._id;
+	tour.slug = await generateUniqueSlug(Tour, tour.title, { excludeId: this.getQuery()._id });
 
-	const baseSlug = tour.title.trim().toLowerCase().replace(/\s+/g, "-");
-	let slug = baseSlug;
-	let counter = 1;
-
-	while (await Tour.exists({ slug, _id: { $ne: currentId } })) {
-		slug = `${baseSlug}-${counter++}`;
-	}
-
-	tour.slug = slug;
 	this.setUpdate(tour);
 });
 
 export const Tour = model<ITour>("Tour", tourSchema);
 ```
 
-- Tour-এর slug-এ `-division`-এর মতো কোনো suffix নেই, শুধু title।
+- Tour-এর slug-এ `-division`-এর মতো কোনো suffix নেই, শুধু title, তাই `suffix` দিইনি।
+
+| Title | Slug |
+|---|---|
+| `Cox's Bazar Sea Beach` | `coxs-bazar-sea-beach` |
+| `Cox's Bazar Sea Beach` (আবার) | `coxs-bazar-sea-beach-1` |
+| `Sylhet & Srimangal Tour` | `sylhet-and-srimangal-tour` |
+| `Bandarban!!  Trip` | `bandarban-trip` |
 - আগে `slug`-এ `required: true` ছিল, এখন সরানো হয়েছে, কারণ client slug পাঠায় না, hook বসায়।
 - `images`-এ এখনো validation নেই, পরে file upload-এর সময় যোগ হবে।
 
@@ -1208,7 +1325,7 @@ export class QueryBuilder<T> {
   "message": "Tours retrieved successfully",
   "meta": { "page": 1, "limit": 2, "total": 3, "totalPage": 2 },
   "data": [
-    { "title": "Cox's Bazar Sea Beach", "slug": "cox's-bazar-sea-beach", "...": "..." },
+    { "title": "Cox's Bazar Sea Beach", "slug": "coxs-bazar-sea-beach", "...": "..." },
     { "title": "Saint Martin Sea Trip", "slug": "saint-martin-sea-trip", "...": "..." }
   ]
 }
@@ -1220,7 +1337,7 @@ export class QueryBuilder<T> {
 
 | বিষয় | মনে রাখার কথা |
 |---|---|
-| Slug | name/title থেকে model-এর pre hook-এ auto তৈরি; duplicate হলে `-1`, `-2` |
+| Slug | `utils/slug.ts`-এর `slugify` দিয়ে পরিষ্কার, `generateUniqueSlug` দিয়ে model-এর pre hook-এ auto তৈরি; duplicate হলে `-1`, `-2` |
 | Hook | `this` লাগে বলে normal function; create → `save`, update → `findOneAndUpdate` |
 | `ref` | `model("Division")`-এর string-এর সাথে হুবহু মিলতে হবে |
 | `Types` | Interface → `import type { Types } from "mongoose"`, Schema → `Schema.Types.ObjectId` |
