@@ -153,35 +153,41 @@ passport.use(
 		},
 		async (accessToken: string, refreshToken: string, profile: Profile, done: VerifyCallback) => {
 			try {
-				// ১. Google profile থেকে email নেওয়া
 				const email = profile.emails?.[0]?.value;
 
 				if (!email) {
 					return done(null, false, { message: "No email found" });
 				}
 
-				// ২. user আগে থেকে আছে কিনা
 				let user = await User.findOne({ email });
 
-				// ৩. blocked বা deleted user যেন Google দিয়েও ঢুকতে না পারে
-				if (user && (user.isDeleted || user.isActive === IsActive.BLOCKED)) {
-					return done(null, false, { message: "User is blocked or deleted" });
-				}
+				if (user) {
+					if (user.isDeleted) {
+						return done(null, false, { message: "User is deleted" });
+					}
 
-				// ৪. না থাকলে নতুন user তৈরি
-				if (!user) {
+					if (user.isActive === IsActive.BLOCKED || user.isActive === IsActive.INACTIVE) {
+						return done(null, false, { message: `User is ${user.isActive}` });
+					}
+
+					if (!user.isVerified) {
+						return done(null, false, { message: "User is not verified" });
+					}
+
+					// Optional: link Google provider to existing account
+					const hasGoogle = user.auths?.some((a) => a.provider === "google");
+					if (!hasGoogle) {
+						user.auths.push({ provider: "google", providerId: profile.id });
+						await user.save();
+					}
+				} else {
 					user = await User.create({
 						email,
 						name: profile.displayName,
 						picture: profile.photos?.[0]?.value,
 						role: Role.USER,
 						isVerified: true,
-						auths: [
-							{
-								provider: "google",
-								providerId: profile.id,
-							},
-						],
+						auths: [{ provider: "google", providerId: profile.id }],
 					});
 				}
 

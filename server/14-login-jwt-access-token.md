@@ -288,7 +288,9 @@ export const checkAuth =
 			if (isUserExist.isDeleted) {
 				throw new AppError(httpStatus.BAD_REQUEST, "User is deleted");
 			}
-
+			if (isUserExist.isVerified) {
+				throw new AppError(httpStatus.BAD_REQUEST, "User is not verified");
+			}
 			// ৪. এই role-এর অনুমতি আছে কিনা
 			if (!authRoles.includes(verifiedToken.role)) {
 				throw new AppError(403, "You are not permitted to view this route!");
