@@ -276,7 +276,7 @@ router.get("/google", (req: Request, res: Response, next: NextFunction) => {
 // Google login শেষে Google এখানে ফেরত পাঠাবে
 router.get(
 	"/google/callback",
-	passport.authenticate("google", { failureRedirect: `${envVars.FRONTEND_URL}/login` }),
+	passport.authenticate("google", { failureRedirect: `${envVars.FRONTEND_URL}/login?error=There is some issues with your account. Please contact with out support team!` }),
 	AuthControllers.googleCallbackController,
 );
 ```
