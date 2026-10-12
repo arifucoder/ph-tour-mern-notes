@@ -1,4 +1,4 @@
-# 36 — Payment-এর পর PDF Invoice (PDFKit + Cloudinary + Email)
+# 34 — Payment-এর পর PDF Invoice (PDFKit + Cloudinary + Email)
 
 ## কী বানাব?
 
@@ -7,7 +7,7 @@ User সফলভাবে payment করার পর দুটো কাজ:
 1. **PDF invoice বানিয়ে email-এ attachment হিসেবে পাঠানো।**
 2. **PDF-টা Cloudinary-তে রেখে URL DB-তে save করা**, যাতে user পরে যেকোনো সময় download করতে পারে।
 
-`payment.interface.ts`-এ আগেই `invoiceUrl?: string` রেখেছিলাম ([note 30](./30-booking-payment-sslcommerz.md)) — এবার সেটার কাজ।
+`payment.interface.ts`-এ আগেই `invoiceUrl?: string` রেখেছিলাম ([note 28](./28-booking-payment-sslcommerz.md)) — এবার সেটার কাজ।
 
 ## পুরো Flow
 
@@ -16,7 +16,7 @@ SSLCommerz → POST /payment/success
    │
    ▼
 successPayment
-   ├─ ① SSLCommerz-এর কাছে validate (note 30)
+   ├─ ① SSLCommerz-এর কাছে validate (note 28)
    ├─ ② Transaction: Payment PAID + Booking COMPLETE → commit ✅
    │        ── টাকা নেওয়া শেষ, এখান থেকে আর কিছুই উল্টাবে না ──
    └─ ③ Invoice (transaction-এর বাইরে, fail করলেও payment PAID-ই থাকবে)
@@ -61,7 +61,7 @@ npm i -D @types/pdfkit
 
 **PDFKit** দিয়ে code লিখে নিজের মতো PDF বানানো যায় — text, font size, alignment, line, image, table সবই। Docs: https://pdfkit.org/
 
-> `.npmrc`-এ `legacy-peer-deps=true` দেওয়া থাকলে ([note 34](./34-forgot-reset-password-nodemailer.md)) আলাদা flag লাগবে না।
+> `.npmrc`-এ `legacy-peer-deps=true` দেওয়া থাকলে ([note 32](./32-forgot-reset-password-nodemailer.md)) আলাদা flag লাগবে না।
 
 ## Step 2: Buffer, Stream আর Chunk — আগে ধারণা
 
@@ -164,7 +164,7 @@ export const generatePdf = (invoiceData: IInvoiceData): Promise<Buffer> => {
 
 ## Step 4: Multer কেন কাজে আসবে না?
 
-[Note 31](./31-file-upload-multer-cloudinary.md)-এ image upload করেছিলাম `multer-storage-cloudinary` দিয়ে। সেটা কাজ করে যখন file **user-এর request-এ আসে** (form-data)। Multer একটা middleware — request থেকে file পড়ে।
+[Note 31](./29-multer-cloudinary.md)-এ image upload করেছিলাম `multer-storage-cloudinary` দিয়ে। সেটা কাজ করে যখন file **user-এর request-এ আসে** (form-data)। Multer একটা middleware — request থেকে file পড়ে।
 
 এখানে PDF কোনো request থেকে আসছে না — **আমাদের server নিজেই বানাচ্ছে**, memory-তে Buffer হিসেবে আছে। তাই Multer-এর কোনো ভূমিকা নেই, Cloudinary-তে **নিজেরা** upload করতে হবে।
 
@@ -293,7 +293,7 @@ catch → abort → সব rollback
 > টাকা দিয়েও user-এর booking confirm হলো না, শুধু একটা email না যাওয়ার কারণে। আর user-কে fail page-এ পাঠানো হবে, সে হয়তো আবার pay করবে — দুবার টাকা কাটা।
 
 **আরও দুটো সমস্যা:**
-- **Rollback বাইরের জিনিস ফেরায় না:** Cloudinary-তে upload হওয়া PDF বা পাঠানো email transaction ফেরত আনতে পারে না ([note 31](./31-file-upload-multer-cloudinary.md))। ফলে rollback হলেও PDF Cloudinary-তে পড়ে থাকে।
+- **Rollback বাইরের জিনিস ফেরায় না:** Cloudinary-তে upload হওয়া PDF বা পাঠানো email transaction ফেরত আনতে পারে না ([note 29](./29-multer-cloudinary.md))। ফলে rollback হলেও PDF Cloudinary-তে পড়ে থাকে।
 - **Transaction অনেকক্ষণ খোলা থাকে:** PDF + upload + email মিলে কয়েক second। MongoDB transaction এতক্ষণ খোলা রাখা ভালো না (default সর্বোচ্চ ৬০ second, আর খোলা থাকা অবস্থায় ওই document-গুলো অন্য কাজে আটকে যেতে পারে)।
 
 ### নিয়ম: আসল কাজ আর "ভালো লাগার" কাজ আলাদা
@@ -317,7 +317,7 @@ import { generatePdf, type IInvoiceData } from "../../utils/invoice";
 import { sendEmail } from "../../utils/sendEmail";
 import type { ITour } from "../tour/tour.interface";
 import { type IUser, Role } from "../user/user.interface";
-// ... note 30-এর বাকি import
+// ... note 28-এর বাকি import
 
 /* ───────────── Invoice: PDF → Cloudinary → DB → Email ───────────── */
 const generateAndSendInvoice = async (paymentId: string) => {
@@ -368,9 +368,9 @@ const generateAndSendInvoice = async (paymentId: string) => {
 	});
 };
 
-/* ───────────── Success (note 30 + invoice) ───────────── */
+/* ───────────── Success (note 28 + invoice) ───────────── */
 const successPayment = async (transactionId: string, valId?: string) => {
-	// ... note 30-এর মতো: payment খোঁজা, already PAID check, SSLCommerz validate
+	// ... note 28-এর মতো: payment খোঁজা, already PAID check, SSLCommerz validate
 	//     invalid হলে FAILED করে return
 
 	// জরুরি কাজ — transaction-এর ভেতরে, commit হয়ে যায়
@@ -408,7 +408,7 @@ const successPayment = async (transactionId: string, valId?: string) => {
 | বিষয় | আগে | এখন |
 |---|---|---|
 | 🚨 Invoice-এর জায়গা | Transaction-এর ভেতরে — email fail হলে PAID payment rollback | Commit-এর পরে, fail হলে শুধু log |
-| Validation | `query.transactionId` দেখেই PAID (note 30-এর নিরাপত্তা সমস্যা) | Note 30-এর validate করা version-এর উপর বানানো |
+| Validation | `query.transactionId` দেখেই PAID (note 28-এর নিরাপত্তা সমস্যা) | Note 30-এর validate করা version-এর উপর বানানো |
 | Status code | "Payment not found", "Booking not found", "Error uploading pdf" — সব `401` | Invoice-এ HTTP status লাগে না; download API-তে 404/403 |
 | Type cast | `as unknown as ITour`, `as unknown as IUser` (৩ বার) | `populate<{...}>` generic |
 | `createdAt` | `as Date` | Interface-এ যোগ |

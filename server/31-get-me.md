@@ -1,4 +1,4 @@
-# 33 — Get Me: নিজের Profile দেখা
+# 31 — Get Me: নিজের Profile দেখা
 
 ## কেন দরকার?
 
@@ -42,7 +42,7 @@ router.get("/me", checkAuth(...Object.values(Role)), UserControllers.getMe);
 
 > ✏️ **সংশোধন:** Note-এ লেখা ছিল "যে যার profile **update** করবে"। এই route শুধু profile **দেখার** (GET)। Update আলাদা route (`PATCH`) দিয়ে হয়।
 
-> ⚠️ **Route order:** `user.route.ts`-এ যদি `GET /:id`-এর মতো কোনো dynamic route থাকে, `/me` অবশ্যই তার **আগে** রাখতে হবে। নাহলে Express "me"-কে একটা id ভেবে `/:id`-এ পাঠিয়ে দেবে → `findById("me")` → CastError ([note 28](./28-get-single-by-slug.md))।
+> ⚠️ **Route order:** `user.route.ts`-এ যদি `GET /:id`-এর মতো কোনো dynamic route থাকে, `/me` অবশ্যই তার **আগে** রাখতে হবে। নাহলে Express "me"-কে একটা id ভেবে `/:id`-এ পাঠিয়ে দেবে → `findById("me")` → CastError ([note 26](./26-get-single-by-slug.md))।
 >
 > ```ts
 > router.get("/me", ...);   // ✅ static আগে
@@ -68,7 +68,7 @@ const getMe = catchAsync(async (req: Request, res: Response) => {
 });
 ```
 
-- **`req.user`**: `checkAuth` token verify করে ভেতরের data (`userId`, `email`, `role`) এখানে বসিয়ে দেয় ([note 30](./30-booking-payment-sslcommerz.md)-এ বিস্তারিত)।
+- **`req.user`**: `checkAuth` token verify করে ভেতরের data (`userId`, `email`, `role`) এখানে বসিয়ে দেয় ([note 28](./28-booking-payment-sslcommerz.md)-এ বিস্তারিত)।
 - **`decodedToken.userId as string`**: `JwtPayload`-এর custom field-এর type TypeScript জানে না।
 
 ### Teacher-এর code থেকে যা বদলেছি
@@ -107,7 +107,7 @@ const getMe = async (userId: string) => {
 
 ### `.select("-password")` কেন?
 
-`select()` দিয়ে কোন field আসবে তা ঠিক করা যায় ([note 27](./27-query-builder-search-filter-pagination.md)-এর field limiting)। নামের আগে **`-`** দিলে সেই field **বাদ** যায়, বাকি সব আসে।
+`select()` দিয়ে কোন field আসবে তা ঠিক করা যায় ([note 25](./25-query-builder.md)-এর field limiting)। নামের আগে **`-`** দিলে সেই field **বাদ** যায়, বাকি সব আসে।
 
 Password hash করা থাকলেও কখনো response-এ পাঠানো উচিত না। Hash হাতে পেলে কেউ offline-এ বসে অনেক password চেষ্টা করে মেলানোর চেষ্টা করতে পারে।
 
@@ -125,7 +125,7 @@ Password hash করা থাকলেও কখনো response-এ পাঠ�
 }
 ```
 
-> 💡 Credentials login-এ আমরা `const { password, ...rest } = user.toObject()` দিয়ে password বাদ দিয়েছিলাম ([note 24](./24-passport-local.md))। দুটোই কাজ করে, পার্থক্য হলো:
+> 💡 Credentials login-এ আমরা `const { password, ...rest } = user.toObject()` দিয়ে password বাদ দিয়েছিলাম ([note 22](./22-passport-local.md))। দুটোই কাজ করে, পার্থক্য হলো:
 > - `select("-password")`: DB থেকেই password **আনা হয় না**।
 > - Destructure: আগে আনা হয়, পরে JavaScript-এ বাদ দেওয়া হয়। Login-এ এটা লাগে, কারণ সেখানে password **compare করতে হয়**।
 >

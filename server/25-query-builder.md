@@ -1,4 +1,4 @@
-# 27 — Search, Filter, Sort, Field Limiting, Pagination → QueryBuilder
+# 25 — Search, Filter, Sort, Field Limiting, Pagination → QueryBuilder
 
 ## কেন দরকার?
 
@@ -879,7 +879,7 @@ const getAllTours = async (query: Record<string, string>) => {
 
 # Part 3: Final Code
 
-Teacher-এর final code, উপরে বলা bug fix আর ছোট improvement সহ। এগুলো note 26-এর final code-এর সাথে হুবহু এক।
+Teacher-এর final code, উপরে বলা bug fix আর ছোট improvement সহ। এগুলো note 24-এর final code-এর সাথে হুবহু এক।
 
 ### Improvement-গুলো এক নজরে
 

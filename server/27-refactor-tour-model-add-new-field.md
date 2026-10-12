@@ -1,4 +1,4 @@
-# 29 — Refactor Tour Model: চলমান Project-এ নতুন Field যোগ করা
+# 27 — Refactor Tour Model: চলমান Project-এ নতুন Field যোগ করা
 
 ## Scenario
 
@@ -104,7 +104,7 @@ export const createTourZodSchema = z.object({
 export const updateTourZodSchema = createTourZodSchema.partial();
 ```
 
-`updateTourZodSchema` যেহেতু `.partial()` দিয়ে create থেকেই বানানো ([note 26](./26-division-tour-module-and-query-builder.md)), তাই update-এ আলাদা করে যোগ করতে হয়নি, নিজে থেকেই চলে এসেছে। দুবার লিখতে না হওয়ার এটাই লাভ।
+`updateTourZodSchema` যেহেতু `.partial()` দিয়ে create থেকেই বানানো ([note 24](./24-division-tour-module-querybuilder.md)), তাই update-এ আলাদা করে যোগ করতে হয়নি, নিজে থেকেই চলে এসেছে। দুবার লিখতে না হওয়ার এটাই লাভ।
 
 > Teacher-এর পুরোনো code-এ create আর update schema আলাদা লেখা ছিল, তখন দুটোতেই আলাদা করে যোগ করতে হতো।
 

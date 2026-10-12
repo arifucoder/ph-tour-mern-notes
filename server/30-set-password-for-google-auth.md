@@ -1,4 +1,4 @@
-# 32 — Google User-এর জন্য Password Set করা
+# 30 — Google User-এর জন্য Password Set করা
 
 ## কেন দরকার?
 
@@ -12,7 +12,7 @@
 }
 ```
 
-এখন সে যদি **একই Gmail আর একটা password** দিয়েও login করতে চায়, পারবে না। Passport local strategy ([note 24](./24-passport-local.md)) তাকে বলে দেয়: "You have authenticated through Google... set a password..."
+এখন সে যদি **একই Gmail আর একটা password** দিয়েও login করতে চায়, পারবে না। Passport local strategy ([note 22](./22-passport-local.md)) তাকে বলে দেয়: "You have authenticated through Google... set a password..."
 
 তাই একটা API বানাব যেটা দিয়ে Google user **অতিরিক্ত** একটা password set করতে পারবে। এরপর সে দুইভাবেই login করতে পারবে:
 
@@ -122,7 +122,7 @@ const setPassword = catchAsync(async (req: Request, res: Response) => {
 
 - **Message:** `"Password Changed Successfully"` ছিল, কিন্তু এখানে password **change** হয়নি, প্রথমবার **set** হয়েছে। Change Password API-র message-এর সাথে গুলিয়ে যেত।
 - **`next` সরিয়েছি:** ব্যবহার হচ্ছিল না, ESLint `no-unused-vars` error দেয়। `catchAsync` নিজেই error `next`-এ পাঠায়।
-- **`decodedToken.userId as string`**: `JwtPayload`-এর custom field-এর type TypeScript জানে না (note 30)।
+- **`decodedToken.userId as string`**: `JwtPayload`-এর custom field-এর type TypeScript জানে না (note 28)।
 
 ---
 
@@ -271,7 +271,7 @@ POST /api/v1/auth/login
 
 ### ৫. Password ছাড়া বা দুর্বল password
 
-→ `400` Zod error, `errorSources`-এ কোন rule ভাঙল তা দেখাবে (note 25)।
+→ `400` Zod error, `errorSources`-এ কোন rule ভাঙল তা দেখাবে (note 23)।
 
 ---
 

@@ -1,4 +1,4 @@
-# 35 — Redis দিয়ে OTP: Email Verification
+# 33 — Redis দিয়ে OTP: Email Verification
 
 এই note-এ যা বানাব:
 
@@ -323,7 +323,7 @@ export const OTPController = { sendOTP, verifyOTP };
 <p>This code is valid for <%= expiresInMinutes %> minutes. Do not share it with anyone.</p>
 ```
 
-`sendEmail.ts`-এ template-এর নাম যোগ করো ([note 34](./34-forgot-reset-password-nodemailer.md)):
+`sendEmail.ts`-এ template-এর নাম যোগ করো ([note 32](./32-forgot-reset-password-nodemailer.md)):
 
 ```ts
 type TEmailTemplate = "forgetPassword" | "otp";

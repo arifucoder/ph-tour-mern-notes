@@ -1,4 +1,4 @@
-# 31 — File Upload: Multer + Cloudinary
+# 29 — File Upload: Multer + Cloudinary
 
 এই note-এ যা শিখব:
 
@@ -338,7 +338,7 @@ path.parse("product-1.jpg");
 
 ### Teacher-এর code থেকে যা বদলেছি
 
-- **`Math.random().toString(36).substring(2)` → `randomUUID().slice(0, 8)`**: দুটোই কাজ করে। `toString(36)` মানে number-কে **base 36**-এ লেখা (০-৯ আর a-z, মোট ৩৬টা চিহ্ন): `0.2312345121` → `"0.8bsl6gv2e"`, তারপর `substring(2)` দিয়ে শুরুর `"0."` বাদ। কিন্তু `Math.random()` সত্যিকারের random না; Node-এর built-in `randomUUID()` আরও নির্ভরযোগ্য (note 30-এর transaction id-এর মতো)।
+- **`Math.random().toString(36).substring(2)` → `randomUUID().slice(0, 8)`**: দুটোই কাজ করে। `toString(36)` মানে number-কে **base 36**-এ লেখা (০-৯ আর a-z, মোট ৩৬টা চিহ্ন): `0.2312345121` → `"0.8bsl6gv2e"`, তারপর `substring(2)` দিয়ে শুরুর `"0."` বাদ। কিন্তু `Math.random()` সত্যিকারের random না; Node-এর built-in `randomUUID()` আরও নির্ভরযোগ্য (note 28-এর transaction id-এর মতো)।
 - **`fileFilter` যোগ:** আগে যেকোনো file (`.exe`, `.pdf`, video) upload করা যেত। এখন শুধু image।
 - **`limits.fileSize` যোগ:** আগে কোনো সীমা ছিল না, কেউ 1 GB file দিয়ে Cloudinary-র জায়গা ভরে ফেলতে পারত।
 
@@ -421,7 +421,7 @@ export const validateRequest = (zodSchema: ZodObject) => async (req: Request, re
 > | `application/x-www-form-urlencoded` (শুধু text, `a=1&b=2`) | `express.urlencoded()` |
 > | `multipart/form-data` (text + file) | **Multer** |
 >
-> File upload `multipart/form-data`, তাই এটা পড়ে Multer। তবে `express.urlencoded()` রেখে দাও — SSLCommerz-এর জন্য এটা লাগে ([note 30](./30-booking-payment-sslcommerz.md))।
+> File upload `multipart/form-data`, তাই এটা পড়ে Multer। তবে `express.urlencoded()` রেখে দাও — SSLCommerz-এর জন্য এটা লাগে ([note 28](./28-booking-payment-sslcommerz.md))।
 
 ---
 
@@ -622,7 +622,7 @@ Multer middleware **controller-এর আগে** চলে। মানে serv
 
 তাহলে DB-তে কিছুই save হয় না, কিন্তু image Cloudinary-তে থেকে যায় — **কোনো কিছুর সাথে যুক্ত না, শুধু জায়গা খায়।**
 
-MongoDB-র সমস্যা transaction দিয়ে rollback করেছিলাম (note 30), কিন্তু Cloudinary MongoDB-র অংশ না। তাই নিজেদের মুছতে হবে।
+MongoDB-র সমস্যা transaction দিয়ে rollback করেছিলাম (note 28), কিন্তু Cloudinary MongoDB-র অংশ না। তাই নিজেদের মুছতে হবে।
 
 ### সমাধান: globalErrorHandler-এ
 
@@ -838,7 +838,7 @@ export const updateTourZodSchema = createTourZodSchema.partial().extend({
 });
 ```
 
-`.partial()` দিয়ে create-এর সব field optional ([note 26](./26-division-tour-module-and-query-builder.md)), আর `.extend()` দিয়ে শুধু update-এর জন্য `deleteImages` যোগ।
+`.partial()` দিয়ে create-এর সব field optional ([note 24](./24-division-tour-module-querybuilder.md)), আর `.extend()` দিয়ে শুধু update-এর জন্য `deleteImages` যোগ।
 
 ---
 

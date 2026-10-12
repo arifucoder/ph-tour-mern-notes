@@ -1,4 +1,4 @@
-# 30 — Booking, Payment, Transaction আর SSLCommerz Integration
+# 28 — Booking, Payment, Transaction আর SSLCommerz Integration
 
 এই note-এ যা বানাব:
 
@@ -359,7 +359,7 @@ try {
 - **`catch`-এ `throw error`, `AppError` না**
   Error-কে যেমন আছে তেমনই আবার ছুঁড়ে দিই। কারণ:
   - Error-টা আগেই `AppError` হতে পারে (যেমন "Tour not found" — 404), নতুন করে মোড়ালে সঠিক status হারিয়ে যেত।
-  - Mongoose/Zod error হলে globalErrorHandler (note 25) নিজেই সুন্দর করে handle করবে।
+  - Mongoose/Zod error হলে globalErrorHandler (note 23) নিজেই সুন্দর করে handle করবে।
   - `new AppError(400, error)` এমনিতেও ভুল: `error`-এর type `unknown`, অথচ AppError-এর ২য় parameter string।
 
 ---
@@ -909,7 +909,7 @@ export const BookingRoutes = router;
 ```
 
 - **`checkAuth(...Object.values(Role))`**: Role enum-এর সব value spread করে দেওয়া, মানে login করা **যেকোনো** role ঢুকতে পারবে।
-- **`/my-bookings` আগে, `/:bookingId` পরে** — নাহলে "my-bookings"-কে bookingId ভেবে নিত ([note 28](./28-get-single-by-slug.md))।
+- **`/my-bookings` আগে, `/:bookingId` পরে** — নাহলে "my-bookings"-কে bookingId ভেবে নিত ([note 26](./26-get-single-by-slug.md))।
 
 `routes/index.ts`-এ:
 

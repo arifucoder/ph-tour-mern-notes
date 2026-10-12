@@ -1,4 +1,4 @@
-# 34 — Forgot Password, Reset Password আর Nodemailer দিয়ে Email
+# 32 — Forgot Password, Reset Password আর Nodemailer দিয়ে Email
 
 এই note-এ যা বানাব:
 
@@ -65,7 +65,7 @@ npm i -D @types/nodemailer @types/ejs
 
 > ✏️ **একটু সংশোধন:** Note-এ লেখা ছিল "nodemailer-এর জন্য লাগছে, কারণ multer-storage-cloudinary-তে conflict আছে"। কারণটা ঠিক, তবে পুরোটা এমন:
 >
-> `npm install` যেকোনো নতুন package install করার সময় **পুরো project-এর** সব dependency আবার check করে। `multer-storage-cloudinary`-র peer dependency conflict (cloudinary v1 চায়, আছে v2 — [note 31](./31-file-upload-multer-cloudinary.md)) project-এ থেকেই গেছে। তাই এখন **যেকোনো** package install করতে গেলেই একই `ERESOLVE` error আসবে, nodemailer বা ejs-এর নিজের কোনো দোষ নেই।
+> `npm install` যেকোনো নতুন package install করার সময় **পুরো project-এর** সব dependency আবার check করে। `multer-storage-cloudinary`-র peer dependency conflict (cloudinary v1 চায়, আছে v2 — [note 29](./29-multer-cloudinary.md)) project-এ থেকেই গেছে। তাই এখন **যেকোনো** package install করতে গেলেই একই `ERESOLVE` error আসবে, nodemailer বা ejs-এর নিজের কোনো দোষ নেই।
 
 **প্রতিবার flag না লিখে সহজ উপায়:** project-এর root-এ একটা `.npmrc` file বানাও:
 
@@ -365,7 +365,7 @@ export const resetPasswordZodSchema = z.object({
 });
 ```
 
-> 💡 Password rule registration আর set-password-এর ([note 32](./32-set-password-for-google-users.md)) সাথে হুবহু এক রাখো — সবচেয়ে ভালো একটা `passwordZodSchema` বানিয়ে সব জায়গায় import করা।
+> 💡 Password rule registration আর set-password-এর ([note 30](./30-set-password-for-google-auth.md)) সাথে হুবহু এক রাখো — সবচেয়ে ভালো একটা `passwordZodSchema` বানিয়ে সব জায়গায় import করা।
 
 ## Step 7: Route
 
@@ -563,7 +563,7 @@ const resetPassword = async (resetToken: string | undefined, newPassword: string
 	// ③ নতুন password hash করে save
 	user.password = await bcryptjs.hash(newPassword, Number(envVars.BCRYPT_SALT_ROUND));
 
-	// Google user forgot-password দিয়ে প্রথমবার password পেলে, credentials provider যোগ (note 32-এর মতো)
+	// Google user forgot-password দিয়ে প্রথমবার password পেলে, credentials provider যোগ (note 30-এর মতো)
 	const hasCredentialsProvider = user.auths.some((providerObject) => providerObject.provider === "credentials");
 	if (!hasCredentialsProvider) {
 		const credentialProvider: IAuthProvider = { provider: "credentials", providerId: user.email };
@@ -576,7 +576,7 @@ const resetPassword = async (resetToken: string | undefined, newPassword: string
 
 ### প্রতিটা অংশ
 
-- **`jwt.verify`-কে `try/catch`-এ রাখা কেন?** Token মেয়াদোত্তীর্ণ হলে `jwt.verify` `TokenExpiredError` throw করে। আমাদের globalErrorHandler JWT error আলাদা করে চেনে না ([note 25](./25-mongoose-zod-error-handling.md)), তাই সেটা **500** হয়ে যেত। এখানে ধরে পরিষ্কার 401 message দিই, যাতে frontend বলতে পারে "link expired, আবার চাও"।
+- **`jwt.verify`-কে `try/catch`-এ রাখা কেন?** Token মেয়াদোত্তীর্ণ হলে `jwt.verify` `TokenExpiredError` throw করে। আমাদের globalErrorHandler JWT error আলাদা করে চেনে না ([note 23](./23-advanced-global-error-handler.md)), তাই সেটা **500** হয়ে যেত। এখানে ধরে পরিষ্কার 401 message দিই, যাতে frontend বলতে পারে "link expired, আবার চাও"।
 - **`decoded.userId`**: কার password বদলাব সেটা **token থেকেই** নিই। Token reset secret দিয়ে sign করা, তাই এর ভেতরের userId কেউ বদলাতে পারে না।
 - **`credentials` provider**: শুধু Google দিয়ে আসা user forgot-password দিয়েও password পেতে পারে। তখন set-password-এর মতোই `auths`-এ credentials যোগ করি, যাতে DB-তে সঠিক থাকে সে কীভাবে login করতে পারে।
 

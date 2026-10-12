@@ -1,6 +1,6 @@
-# 28 — Slug দিয়ে Single Data Get করা (+ Route Order-এর নিয়ম)
+# 26 — Slug দিয়ে Single Data Get করা (+ Route Order-এর নিয়ম)
 
-আগের note-এ ([26](./26-division-tour-module-and-query-builder.md)) Division আর Tour-এর slug auto-generate করেছি। এখন দেখব কীভাবে **slug দিয়ে একটা single division** আনা যায়। একই pattern পরে Tour বা অন্য যেকোনো module-এর single API-তে ব্যবহার করা যাবে।
+আগের note-এ ([26](./24-division-tour-module-querybuilder.md)) Division আর Tour-এর slug auto-generate করেছি। এখন দেখব কীভাবে **slug দিয়ে একটা single division** আনা যায়। একই pattern পরে Tour বা অন্য যেকোনো module-এর single API-তে ব্যবহার করা যাবে।
 
 ```
 GET /api/v1/division/chattogram-division

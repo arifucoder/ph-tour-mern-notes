@@ -1,4 +1,4 @@
-# 25 — Mongoose আর Zod Error Handling
+# 23 — Mongoose আর Zod Error Handling
 
 আগের note-গুলোতে ([06-global-error-handler](./06-global-error-handler.md), [07-extend-js-error-to-apperror](./07-extend-js-error-to-apperror.md)) global error handler আর `AppError` বানিয়েছিলাম। সেখানে মাত্র দুই ধরনের error handle হতো:
 

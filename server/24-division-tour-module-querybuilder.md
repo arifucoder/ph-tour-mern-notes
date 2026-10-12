@@ -1,4 +1,4 @@
-# 26 — Division ও Tour Module (CRUD, Auto Slug, QueryBuilder)
+# 24 — Division ও Tour Module (CRUD, Auto Slug, QueryBuilder)
 
 এই class-এ দুটো নতুন module বানাব:
 
