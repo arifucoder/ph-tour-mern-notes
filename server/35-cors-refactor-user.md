@@ -455,20 +455,85 @@ Cross-site-এ cookie পাঠাতে লাগে:
 | `secure` | `false` | `true` (বাধ্যতামূলক) |
 | `sameSite` | `"lax"` | `"none"` |
 
-আর browser নিয়ম: **`sameSite: "none"` দিলে `secure: true` দিতেই হবে**, নাহলে cookie বাতিল। তাই environment দেখে ঠিক করি:
+আর browser নিয়ম: **`sameSite: "none"` দিলে `secure: true` দিতেই হবে**, নাহলে cookie বাতিল। তাই environment দেখে ঠিক করি।
+
+### এখনকার `setCookie.ts`
+
+```ts
+// src/app/utils/setCookie.ts (এখন যা আছে)
+export const setAuthCookie = (res: Response, tokenInfo: AuthTokens) => {
+	if (tokenInfo.accessToken) {
+		res.cookie("accessToken", tokenInfo.accessToken, {
+			httpOnly: true,
+			secure: false,
+		});
+	}
+
+	if (tokenInfo.refreshToken) {
+		res.cookie("refreshToken", tokenInfo.refreshToken, {
+			httpOnly: true,
+			secure: false,
+		});
+	}
+};
+```
+
+এখানে `cookieOptions` নামে কিছু নেই — option দুই জায়গায় আলাদা করে লেখা, আর `sameSite` দেওয়াই নেই (তাই browser-এর default `"lax"` চলে)। এখন একটা `cookieOptions` **নতুন বানিয়ে** দুই জায়গায় ব্যবহার করব, আর export করব যাতে logout-ও একই option নিতে পারে।
+
+### Updated `setCookie.ts`
 
 ```ts
 // src/app/utils/setCookie.ts
+import type { CookieOptions, Response } from "express";
+import { envVars } from "../config/env";
+
+export interface AuthTokens {
+	accessToken?: string;
+	refreshToken?: string;
+}
+
 const isProduction = envVars.NODE_ENV === "production";
 
-const cookieOptions = {
+// set আর clear — দুই জায়গায় একই option লাগবে, তাই export
+export const authCookieOptions: CookieOptions = {
 	httpOnly: true,
-	secure: isProduction,
-	sameSite: isProduction ? ("none" as const) : ("lax" as const),
+	secure: isProduction, // local (HTTP) → false, production (HTTPS) → true
+	sameSite: isProduction ? "none" : "lax", // আলাদা domain-এ cookie পাঠাতে "none"
 };
 
-// res.cookie("accessToken", token, cookieOptions) — দুটো token-এই একই option
-// logout-এর clearCookie-তেও একই option (note 19)
+export const setAuthCookie = (res: Response, tokenInfo: AuthTokens) => {
+	if (tokenInfo.accessToken) {
+		res.cookie("accessToken", tokenInfo.accessToken, authCookieOptions);
+	}
+
+	if (tokenInfo.refreshToken) {
+		res.cookie("refreshToken", tokenInfo.refreshToken, authCookieOptions);
+	}
+};
+```
+
+- **`CookieOptions`**: Express-এর নিজের type। এটা দিলে `sameSite`-এ ভুল বানান (`"None"`, `"lax "`) দিলে TypeScript ধরে ফেলে, আর `as const` লাগে না।
+- এক জায়গায় option রাখায় পরে বদলাতে হলে একবার বদলালেই দুই cookie-তে কাজ করবে।
+
+### Logout-এও একই option
+
+Cookie মুছতে হলে `clearCookie`-এর option set করার সময়ের option-এর সাথে **মিলতে হয়**, নাহলে কিছু browser cookie মোছে না ([note 19](./19-logout.md))। Production-এ `sameSite: "none"` দিয়ে set করে `"lax"` দিয়ে clear করলে logout কাজই করবে না। তাই সেখানেও একই object:
+
+```ts
+// src/app/modules/auth/auth.controller.ts
+import { authCookieOptions } from "../../utils/setCookie";
+
+const logout = catchAsync(async (req: Request, res: Response) => {
+	res.clearCookie("accessToken", authCookieOptions);
+	res.clearCookie("refreshToken", authCookieOptions);
+
+	sendResponse(res, {
+		success: true,
+		statusCode: httpStatus.OK,
+		message: "User logged out successfully",
+		data: null,
+	});
+});
 ```
 
 > Deploy-এর সময় এটা আবার কাজে লাগবে — তখন বিস্তারিত দেখব। এখন শুধু মনে রাখো: **production-এ cookie লাগলে তিনটা জিনিস একসাথে লাগে** — CORS `credentials: true` + frontend `withCredentials` + cookie `secure: true, sameSite: "none"`।
