@@ -61,17 +61,17 @@
 
 | Package Name | Description |
 |---|---|
-| typescript | JavaScript-এর উপর static type-checking যোগ করার language/compiler। আমরা `tsc --noEmit` দিয়ে শুধু type check করি, build করে `tsup`।<br>https://www.npmjs.com/package/typescript |
-| tsx | TypeScript file সরাসরি (build ছাড়াই) চালানো আর file বদলালে নিজে restart করার development টুল (`npm run dev`)।<br>https://www.npmjs.com/package/tsx |
-| tsup | `src`-এর TypeScript থেকে production-এর জন্য `dist/server.js` বানানো bundler। খুব দ্রুত, তবে type check **করে না**।<br>https://www.npmjs.com/package/tsup |
+| typescript `-D` | JavaScript-এর উপর static type-checking যোগ করার language/compiler। আমরা `tsc --noEmit` দিয়ে শুধু type check করি, build করে `tsup`।<br>https://www.npmjs.com/package/typescript |
+| tsx `-D` | TypeScript file সরাসরি (build ছাড়াই) চালানো আর file বদলালে নিজে restart করার development টুল (`npm run dev`)।<br>https://www.npmjs.com/package/tsx |
+| tsup `-D` | `src`-এর TypeScript থেকে production-এর জন্য `dist/server.js` বানানো bundler। খুব দ্রুত, তবে type check **করে না**।<br>https://www.npmjs.com/package/tsup |
 
 ### Linting
 
 | Package Name | Description |
 |---|---|
-| eslint | Code-এর ভুল, খারাপ অভ্যাস আর style-এর নিয়ম ধরার টুল (`npm run lint`)।<br>https://www.npmjs.com/package/eslint |
-| @eslint/js | ESLint-এর JavaScript-এর জন্য বানানো recommended নিয়মের set।<br>https://www.npmjs.com/package/@eslint/js |
-| typescript-eslint | TypeScript code-এর জন্য ESLint-এর parser আর নিয়ম (আমরা `strict` + `stylistic` config ব্যবহার করি — `any`, `!` ইত্যাদি ধরে)।<br>https://www.npmjs.com/package/typescript-eslint |
+| eslint `-D` | Code-এর ভুল, খারাপ অভ্যাস আর style-এর নিয়ম ধরার টুল (`npm run lint`)।<br>https://www.npmjs.com/package/eslint |
+| @eslint/js `-D` | ESLint-এর JavaScript-এর জন্য বানানো recommended নিয়মের set।<br>https://www.npmjs.com/package/@eslint/js |
+| typescript-eslint `-D` | TypeScript code-এর জন্য ESLint-এর parser আর নিয়ম (আমরা `strict` + `stylistic` config ব্যবহার করি — `any`, `!` ইত্যাদি ধরে)।<br>https://www.npmjs.com/package/typescript-eslint |
 
 ### Type Definitions (`@types/...`)
 
@@ -79,19 +79,19 @@
 
 | Package Name | কার জন্য |
 |---|---|
-| @types/node | Node.js-এর নিজের module (`fs`, `path`, `crypto`, `process`, `Buffer`)<br>https://www.npmjs.com/package/@types/node |
-| @types/express | `Request`, `Response`, `NextFunction`, `CookieOptions`<br>https://www.npmjs.com/package/@types/express |
-| @types/cors | cors<br>https://www.npmjs.com/package/@types/cors |
-| @types/cookie-parser | cookie-parser (`req.cookies`)<br>https://www.npmjs.com/package/@types/cookie-parser |
-| @types/jsonwebtoken | jsonwebtoken (`JwtPayload`)<br>https://www.npmjs.com/package/@types/jsonwebtoken |
-| @types/passport | passport<br>https://www.npmjs.com/package/@types/passport |
-| @types/passport-local | passport-local (`IVerifyOptions`)<br>https://www.npmjs.com/package/@types/passport-local |
-| @types/passport-google-oauth20 | passport-google-oauth20<br>https://www.npmjs.com/package/@types/passport-google-oauth20 |
-| @types/express-session | express-session<br>https://www.npmjs.com/package/@types/express-session |
-| @types/multer | multer (`Express.Multer.File`)<br>https://www.npmjs.com/package/@types/multer |
-| @types/nodemailer | nodemailer<br>https://www.npmjs.com/package/@types/nodemailer |
-| @types/ejs | ejs<br>https://www.npmjs.com/package/@types/ejs |
-| @types/pdfkit | pdfkit<br>https://www.npmjs.com/package/@types/pdfkit |
+| @types/node `-D` | Node.js-এর নিজের module (`fs`, `path`, `crypto`, `process`, `Buffer`)<br>https://www.npmjs.com/package/@types/node |
+| @types/express `-D` | `Request`, `Response`, `NextFunction`, `CookieOptions`<br>https://www.npmjs.com/package/@types/express |
+| @types/cors `-D` | cors<br>https://www.npmjs.com/package/@types/cors |
+| @types/cookie-parser `-D` | cookie-parser (`req.cookies`)<br>https://www.npmjs.com/package/@types/cookie-parser |
+| @types/jsonwebtoken `-D` | jsonwebtoken (`JwtPayload`)<br>https://www.npmjs.com/package/@types/jsonwebtoken |
+| @types/passport `-D` | passport<br>https://www.npmjs.com/package/@types/passport |
+| @types/passport-local `-D` | passport-local (`IVerifyOptions`)<br>https://www.npmjs.com/package/@types/passport-local |
+| @types/passport-google-oauth20 `-D` | passport-google-oauth20<br>https://www.npmjs.com/package/@types/passport-google-oauth20 |
+| @types/express-session `-D` | express-session<br>https://www.npmjs.com/package/@types/express-session |
+| @types/multer `-D` | multer (`Express.Multer.File`)<br>https://www.npmjs.com/package/@types/multer |
+| @types/nodemailer `-D` | nodemailer<br>https://www.npmjs.com/package/@types/nodemailer |
+| @types/ejs `-D` | ejs<br>https://www.npmjs.com/package/@types/ejs |
+| @types/pdfkit `-D` | pdfkit<br>https://www.npmjs.com/package/@types/pdfkit |
 
 > 💡 `mongoose`, `zod`, `axios`, `cloudinary`, `redis`, `bcryptjs`, `http-status-codes`, `dotenv` — এগুলো নিজেরাই type নিয়ে আসে (**TS** badge), তাই এদের `@types` লাগে না।
 
