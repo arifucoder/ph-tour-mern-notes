@@ -208,3 +208,11 @@ npm install -D typescript   # devDependencies-এ যোগ হবে (-D বা
 > ⚠️ **Server-এ build করলে devDependencies-ও লাগবে।** VPS-এ `npm run build` চালাতে `tsup` লাগে, আর `tsup` devDependency। তাই সেখানে `npm ci` (সব install) দিয়ে build করতে হবে — `npm ci --omit=dev` দিলে `tsup` থাকবে না, build fail করবে। শুধু আগে থেকে build করা `dist` চালালে তখন `--omit=dev` দেওয়া যায়।
 >
 > 💡 উল্টো ভুলও সাধারণ: কোনো runtime package (যেমন `axios`) ভুল করে `-D` দিয়ে install করলে local-এ কাজ করবে, কিন্তু `--omit=dev` দিয়ে install করা server-এ `Cannot find package 'axios'` error দেবে।
+
+---
+
+## Project Repository
+
+এই সব package আর script ব্যবহার করে বানানো পুরো project-এর code:
+
+**GitHub:** https://github.com/arifucoder/phovia-tour-server
