@@ -31,6 +31,32 @@ Phovia Tour-এর ডিজাইনে যে রংগুলো ব্যব�
 
 **একমাত্র ব্যতিক্রম:** যে রং theme-এর সাথে বদলানো উচিত **না** — যেমন ছবির ওপরে কালো overlay-এর ওপর লেখা (`text-white`), বা brand logo-র নির্দিষ্ট রং। ছবি dark mode-এ বদলায় না, তাই সেখানে `text-white` ঠিক আছে।
 
+### 🔍 Dark mode-এ কেমন দেখায় test করা — hard-coded রং ধরার উপায়
+
+Dark mode toggle button বানানোর আগেই পুরো site dark mode-এ দেখতে চাইলে `index.html`-এ সরাসরি `dark` class বসিয়ে দেওয়া যায়:
+
+```html
+<!-- index.html -->
+<html lang="en" class="dark">
+```
+
+এখন পুরো site dark mode-এ খুলবে। যেখানে লেখা অদৃশ্য হয়ে গেছে বা সাদা box চোখে লাগছে — বুঝবেন সেখানে **hard-coded রং** আছে, semantic token দিয়ে বদলাতে হবে।
+
+> ⚠️ সংশোধন: `<body class="dark">` দিলেও মোটামুটি কাজ করে, তবে **`<html>`-এ দেওয়াই নিয়ম**। কারণ:
+> - shadcn আর Tailwind-এর dark mode setup `<html>`-এ `dark` class ধরে নিয়ে বানানো।
+> - আমাদের `@custom-variant dark (&:is(.dark *))` শুধু `.dark`-এর **ভেতরের** element ধরে, `.dark` element-কে নিজেকে না। `<body class="dark">` দিলে `<body>`-এর নিজের `dark:` class কাজ করবে না।
+> - পরে dark mode toggle-ও `<html>`-এ class যোগ/বাদ দিয়ে বানানো হয়।
+
+> ⚠️ Test শেষে `class="dark"` **মুছে দিতে ভুলবেন না** — নাহলে সবার জন্য site সবসময় dark mode-এ খুলবে।
+
+**File না বদলিয়ে দ্রুত test:** Browser-এর DevTools খুলে (`F12`) **Console**-এ লিখুন:
+
+```js
+document.documentElement.classList.toggle("dark")
+```
+
+প্রতিবার চালালে light ↔ dark বদলাবে। Page reload করলে আবার light-এ ফিরে যাবে, তাই মুছতে ভুলে যাওয়ার ভয় নেই।
+
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
