@@ -4,6 +4,8 @@ Phovia Tour-এর ডিজাইনে যে রংগুলো ব্যব�
 
 > ডিজাইনের সব রং নেওয়া হয়েছে Phovia Tour design canvas থেকে (Home, Admin Overview আর States artboard)।
 
+> ✅ **আমাদের প্রজেক্টে যেটা ব্যবহার করছি:** নোটের শেষে **৮ নম্বর section** — shadcn-এর token-এ সরাসরি Phovia-র রং বসানো। ১–৬ নম্বর section-এ `phovia-` prefix দিয়ে আলাদা variable বানানোর পদ্ধতিটা ধারণা বোঝার জন্য রাখা হলো।
+
 ---
 
 ## ১. মূল ধারণা — ৩টা অংশ
@@ -475,3 +477,399 @@ import "./index.css";
 | কখন | দ্রুত prototype, ছোট প্রজেক্ট | এড়িয়ে চলুন | Production, portfolio প্রজেক্ট |
 
 > **আমাদের প্রজেক্টে:** **Fontsource (Option ৩)** — কারণ এই প্রজেক্ট live server-এ যাবে। তিনটার যেকোনো একটাই ব্যবহার করবেন, একসাথে একাধিক না — নাহলে একই font দুইবার load হবে।
+
+---
+
+## ৮. ✅ Best Practice: shadcn token-এ সরাসরি Phovia-র রং (সবচেয়ে optimized)
+
+### কেন এটা সবচেয়ে ভালো
+
+উপরের পদ্ধতিতে shadcn-এর token (`--primary`, `--muted` …) আর আমাদের `--phovia-*` token **দুই সেট** পাশাপাশি থাকে। এই পদ্ধতিতে আলাদা সেট বানাই না — **shadcn-এর token-গুলোতেই সরাসরি Phovia-র রং বসাই**, আর shadcn-এ যা নেই শুধু সেগুলো নতুন যোগ করি।
+
+| | `phovia-` prefix পদ্ধতি (১–৬) | shadcn token পদ্ধতি (এই section) |
+|---|---|---|
+| Variable সেট | দুটো (shadcn + phovia) | একটা |
+| Class-এর নাম | `bg-phovia-primary` | `bg-primary` — ছোট, সব shadcn dev চেনে |
+| shadcn component (Button, Input) | আলাদা map না করলে Phovia রঙে আসে না | নিজে থেকেই Phovia রঙে |
+| CSS size | বড়, একই রং দুইবার | ছোট, প্রতিটা রং একবার |
+| Dark mode | কাজ করে | কাজ করে |
+
+### দুইভাবে বানানো যায়
+
+**১) Claude দিয়ে (দ্রুত):** design canvas-এর লিংক দিয়ে Claude-কে বলা — "এই ডিজাইনের সব রং light/dark সহ বের করে shadcn token-এ map করে `index.css` বানাও; shadcn-এ যে token নেই সেগুলো নতুন নামে যোগ করো।" তারপর ফলাফল নিজে মিলিয়ে দেখা (বিশেষ করে ডিজাইনে না থাকা প্রস্তাবিত মানগুলো)।
+
+**২) নিজে (শেখার জন্য ভালো):**
+1. ডিজাইন থেকে সব রং light/dark জোড়া করে তালিকা বানানো।
+2. প্রতিটা রংকে কাজ অনুযায়ী shadcn token-এর সাথে মেলানো (নিচের mapping table)।
+3. যেগুলো মেলে না (success, warning, star …) সেগুলোর জন্য নতুন semantic নাম দেওয়া।
+4. `:root` আর `.dark`-এ মান বসানো, `@theme inline`-এ শুধু **নতুন** token-গুলো যোগ করা।
+
+### Design → shadcn token mapping
+
+| ডিজাইনের নাম | shadcn token | Class উদাহরণ |
+|---|---|---|
+| `bg` | `--background` | `bg-background` |
+| `ink` | `--foreground` | `text-foreground` |
+| `surface` | `--card`, `--popover` | `bg-card` |
+| `surface2` | `--secondary`, `--muted` | `bg-muted` |
+| `muted` (লেখা) | `--muted-foreground` | `text-muted-foreground` |
+| `line` | `--border`, `--input` | `border-border` |
+| `primary` | `--primary`, `--ring` | `bg-primary` |
+| `primary-ink` | `--primary-foreground` | `text-primary-foreground` |
+| `primary-soft` | `--accent` | `bg-accent` |
+| `danger` | `--destructive` | `text-destructive` |
+| `c1`, `c2` | `--chart-1`, `--chart-2` | chart-এ |
+| — (নতুন) | `--success`, `--warning`, `--info`, `--star`, `--status-*` … | `text-success`, `bg-warning-soft` |
+
+> নোট: `--muted` (background) আর `--muted-foreground` (লেখা) shadcn-এ আলাদা জিনিস। ডিজাইনের "muted" আসলে লেখার রং, তাই সেটা `--muted-foreground`-এ গেছে।
+
+---
+
+### ধাপ ১: Font package বদলানো
+
+shadcn init-এ আমরা **Nova** preset বেছেছিলাম, যেটা **Geist** font install করে। আমাদের ডিজাইনে Geist নেই, তাই সেটা সরিয়ে Poppins আর Hind Siliguri যোগ করব।
+
+```sh
+# bun (আমাদের প্রজেক্টে এটাই)
+bun add @fontsource/poppins @fontsource/hind-siliguri
+bun remove @fontsource-variable/geist
+
+# npm-এর সমতুল্য
+npm i @fontsource/poppins @fontsource/hind-siliguri
+npm uninstall @fontsource-variable/geist
+```
+
+> ⚠️ প্রজেক্ট bun দিয়ে চলছে বলে **bun-এর command-ই চালান**। bun প্রজেক্টে npm চালালে একটা `package-lock.json` তৈরি হয়, ফলে দুটো lockfile হয়ে যায় (৩ নম্বর নোট দেখুন)।
+>
+> ⚠️ Geist uninstall করার পর `index.css`-এ থাকা `@import "@fontsource-variable/geist";` লাইন আর `--font-sans`-এ থাকা `'Geist Variable'` **মুছতে হবে**। নাহলে package খুঁজে না পেয়ে build error দেবে।
+
+> নোট: Font এখানে `index.css`-এর `@import` দিয়ে আনা হয়েছে, ৭ নম্বর section-এর মতো `main.tsx`-এ না। দুটোই ঠিক — Vite দুই জায়গা থেকেই package-এর CSS bundle করে। CSS-এ রাখলে সব style এক ফাইলে থাকে। (এটা ৭ নম্বর section-এর ধীর `@import url(...)` না — এখানে font আমাদের নিজেদের bundle থেকে আসছে, Google থেকে না।)
+
+---
+
+### ধাপ ২: পুরো `src/index.css`
+
+পুরো ফাইলটা এটা দিয়ে **replace** করুন:
+
+```css
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+/* Fonts (self-hosted, Fontsource) */
+@import "@fontsource/poppins/400.css";
+@import "@fontsource/poppins/500.css";
+@import "@fontsource/poppins/600.css";
+@import "@fontsource/poppins/700.css";
+@import "@fontsource/poppins/800.css";
+@import "@fontsource/hind-siliguri/500.css";
+@import "@fontsource/hind-siliguri/600.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-heading: var(--font-sans);
+  --font-sans: 'Poppins', 'Hind Siliguri', system-ui, sans-serif;
+
+  /* shadcn tokens */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Extra tokens from the Phovia design (shadcn has no equivalent) */
+  --color-primary-hover: var(--primary-hover);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-destructive-soft: var(--destructive-soft);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+
+  --color-soft: var(--soft);
+  --color-grid: var(--grid);
+  --color-pink: var(--pink);
+  --color-pink-soft: var(--pink-soft);
+  --color-yellow-soft: var(--yellow-soft);
+  --color-mint-soft: var(--mint-soft);
+  --color-star: var(--star);
+  --color-placeholder: var(--placeholder);
+  --color-placeholder-foreground: var(--placeholder-foreground);
+
+  --color-status-complete: var(--status-complete);
+  --color-status-pending: var(--status-pending);
+  --color-status-cancelled: var(--status-cancelled);
+  --color-status-failed: var(--status-failed);
+
+  --shadow-card: var(--card-shadow);
+
+  /* Radius: 10px buttons/inputs, 14px cards */
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+  --radius: 0.625rem;
+
+  /* Surfaces & text */
+  --background: #FFFFFF;
+  --foreground: #1C1A3A;
+  --card: #FFFFFF;
+  --card-foreground: #1C1A3A;
+  --popover: #FFFFFF;
+  --popover-foreground: #1C1A3A;
+  --secondary: #F7F6FD;
+  --secondary-foreground: #1C1A3A;
+  --muted: #F7F6FD;
+  --muted-foreground: #6A6785;
+  --soft: #FFF3F5;
+  --grid: #EEECF6;
+
+  /* Brand */
+  --primary: #5B4CF0;
+  --primary-foreground: #FFFFFF;
+  --primary-hover: #4A3BD9;
+  --accent: #EEEBFF;
+  --accent-foreground: #5B4CF0;
+
+  /* Lines & focus */
+  --border: #ECEAF5;
+  --input: #ECEAF5;
+  --ring: #5B4CF0;
+
+  /* Status */
+  --destructive: #B42318;
+  --destructive-foreground: #FFFFFF;
+  --destructive-soft: #FDECEA;
+  --success: #17714A;
+  --success-soft: #E2F3EA;
+  --warning: #8F5400;
+  --warning-soft: #FFF0D4;
+  --info: #21539E;
+  --info-soft: #E5EDFA;
+
+  /* Icon tiles, rating, image placeholder */
+  --pink: #B4335A;
+  --pink-soft: #FFE8EC;
+  --yellow-soft: #FFF4DC;
+  --mint-soft: #E3F7EF;
+  --star: #FFB547;
+  --placeholder: #EEEBF8;
+  --placeholder-foreground: #8A86AE;
+
+  /* Booking status badges */
+  --status-complete: #2E8B57;
+  --status-pending: #D9A21B;
+  --status-cancelled: #9AA3A0;
+  --status-failed: #C8402F;
+
+  /* Charts (3–5 reuse status colors) */
+  --chart-1: #6152F0;
+  --chart-2: #D9771F;
+  --chart-3: #2E8B57;
+  --chart-4: #D9A21B;
+  --chart-5: #C8402F;
+
+  /* Admin sidebar */
+  --sidebar: #FFFFFF;
+  --sidebar-foreground: #1C1A3A;
+  --sidebar-primary: #5B4CF0;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #EEEBFF;
+  --sidebar-accent-foreground: #5B4CF0;
+  --sidebar-border: #ECEAF5;
+  --sidebar-ring: #5B4CF0;
+
+  --card-shadow: 0 12px 34px rgba(28, 26, 58, 0.08);
+}
+
+.dark {
+  /* Surfaces & text */
+  --background: #12111F;
+  --foreground: #EEEDF7;
+  --card: #1B1A2E;
+  --card-foreground: #EEEDF7;
+  --popover: #1B1A2E;
+  --popover-foreground: #EEEDF7;
+  --secondary: #1F1D35;
+  --secondary-foreground: #EEEDF7;
+  --muted: #1F1D35;
+  --muted-foreground: #A9A6C4;
+  --soft: #211B2E;
+  --grid: #2A2845;
+
+  /* Brand */
+  --primary: #9D92FF;
+  --primary-foreground: #14112E;
+  --primary-hover: #B3AAFF;
+  --accent: #2A2550;
+  --accent-foreground: #9D92FF;
+
+  /* Lines & focus */
+  --border: #2E2B4A;
+  --input: #2E2B4A;
+  --ring: #9D92FF;
+
+  /* Status */
+  --destructive: #F28B80;
+  --destructive-foreground: #2A0E0B; /* not in design, proposed */
+  --destructive-soft: #3B1916;
+  --success: #6DCB98;
+  --success-soft: #14301F;
+  --warning: #F1C46E;
+  --warning-soft: #382B10;
+  --info: #9DBBF0;                   /* not in design, proposed */
+  --info-soft: #172338;              /* not in design, proposed */
+
+  /* Icon tiles, rating, image placeholder */
+  --pink: #FF9DB2;
+  --pink-soft: #3A2230;
+  --yellow-soft: #3A3020;
+  --mint-soft: #1D3530;
+  --star: #FFB547;
+  --placeholder: #26243F;
+  --placeholder-foreground: #7E7AA6;
+
+  /* Booking status badges */
+  --status-complete: #4FB67C;
+  --status-pending: #E2B23A;
+  --status-cancelled: #6E7A77;
+  --status-failed: #E0604E;
+
+  /* Charts */
+  --chart-1: #7F73F5;
+  --chart-2: #D8762A;
+  --chart-3: #4FB67C;
+  --chart-4: #E2B23A;
+  --chart-5: #E0604E;
+
+  /* Admin sidebar */
+  --sidebar: #1B1A2E;
+  --sidebar-foreground: #EEEDF7;
+  --sidebar-primary: #9D92FF;
+  --sidebar-primary-foreground: #14112E;
+  --sidebar-accent: #2A2550;
+  --sidebar-accent-foreground: #9D92FF;
+  --sidebar-border: #2E2B4A;
+  --sidebar-ring: #9D92FF;
+
+  --card-shadow: 0 12px 34px rgba(0, 0, 0, 0.35);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+
+  html {
+    @apply font-sans antialiased;
+  }
+}
+```
+
+---
+
+### আপনার দেওয়া ফাইলে যা ঠিক করা হয়েছে
+
+> ⚠️ **সংশোধন ১ — Shadow variable নিজেকেই reference করছিল:**
+> ```css
+> @theme inline { --shadow-card: var(--shadow-card); }   /* ❌ */
+> :root        { --shadow-card: 0 12px 34px ...; }
+> ```
+> `--shadow-card`-এর মান `var(--shadow-card)` — অর্থাৎ নিজের দিকেই ইঙ্গিত (circular reference)। এখন হয়তো CSS layer-এর ক্রমের কারণে কাজ করে যাচ্ছে, কিন্তু এটা ভঙ্গুর আর বিভ্রান্তিকর। shadcn-এর অন্য সব token-এ দুই নাম আলাদা (`--color-background: var(--background)`), এখানেও তাই করা হয়েছে:
+> ```css
+> @theme inline { --shadow-card: var(--card-shadow); }   /* ✅ */
+> :root        { --card-shadow: 0 12px 34px ...; }
+> ```
+> Class একই থাকছে: `shadow-card`।
+
+> ⚠️ **সংশোধন ২ — "proposed" comment ভুল জায়গায় ছিল:** dark mode-এর `--destructive-soft: #3B1916` আসলে **ডিজাইনেই আছে**। ডিজাইনে যেগুলো নেই সেগুলো হলো `--destructive-foreground` (dark), `--info` (dark) আর `--info-soft` (dark)। Comment ঠিক জায়গায় সরানো হয়েছে।
+
+> নোট: `--chart-3` থেকে `--chart-5` ডিজাইনে ছিল না — এগুলোতে status-এর রং (সবুজ, হলুদ, লাল) বসানো হয়েছে। Chart-এ ৩টার বেশি series লাগলে কাজে লাগবে।
+
+> নোট: Hind Siliguri-র শুধু 500 আর 600 weight import করা আছে (ডিজাইনে এগুলোই ব্যবহার হয়েছে)। সাধারণ (400) weight-এর বাংলা লেখাতে browser সবচেয়ে কাছের 500 ব্যবহার করবে। বাংলা লেখা একটু হালকা চাইলে `@import "@fontsource/hind-siliguri/400.css";` যোগ করুন।
+
+---
+
+### `index.css`-এর গঠন — কোন অংশ কী করে
+
+| অংশ | কাজ |
+|---|---|
+| `@import` | Tailwind, animation, shadcn-এর base style আর font আনা। সবসময় ফাইলের **শুরুতে** |
+| `@custom-variant dark` | `.dark` class-এর ভেতরে থাকলে `dark:` variant চালু হবে |
+| `@theme inline` | Tailwind-কে token-এর নাম জানানো → class তৈরি হয় (`bg-primary`, `shadow-card`, `rounded-xl`, `font-sans`) |
+| `:root` | Light mode-এর আসল রং |
+| `.dark` | Dark mode-এর আসল রং — **একই নাম**, ভিন্ন মান |
+| `@layer base` | সব element-এর default: border রং, body-র background/লেখা, font |
+
+> `@layer base`-এর কারণে `<body>`-এ আলাদা করে `bg-background text-foreground font-sans` লিখতে হয় না — নিজে থেকেই বসে যায়।
+
+---
+
+### ব্যবহারের উদাহরণ
+
+```tsx
+import { Button } from "@/components/ui/button";
+
+{/* shadcn Button — নিজে থেকেই Phovia বেগুনি */}
+<Button>Book now</Button>
+<Button variant="outline">Details</Button>
+<Button variant="destructive">Delete</Button>
+
+{/* Card */}
+<div className="bg-card shadow-card rounded-xl p-6">
+  <h3 className="font-semibold">Sajek Valley</h3>
+  <p className="text-muted-foreground">3 days 2 nights</p>
+  <span className="text-star">★ 4.8</span>
+</div>
+
+{/* Status badge */}
+<span className="bg-success-soft text-success rounded-full px-3 py-1 text-sm">Paid</span>
+<span className="bg-warning-soft text-warning rounded-full px-3 py-1 text-sm">Pending</span>
+
+{/* Booking status dot */}
+<span className="size-2 rounded-full bg-status-complete" />
+
+{/* Custom primary button-এ hover */}
+<a className="bg-primary text-primary-foreground hover:bg-primary-hover rounded-lg px-5 py-3">Explore</a>
+```
+
+> 💡 **Tailwind CSS IntelliSense** (VS Code extension) install করে রাখুন — `bg-` লিখলেই সব token-এর তালিকা রঙের preview সহ আসবে, কিছু মুখস্থ রাখতে হবে না।
