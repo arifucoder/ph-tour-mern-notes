@@ -6,6 +6,34 @@ Phovia Tour-এর ডিজাইনে যে রংগুলো ব্যব�
 
 > ✅ **আমাদের প্রজেক্টে যেটা ব্যবহার করছি:** নোটের শেষে **৮ নম্বর section** — shadcn-এর token-এ সরাসরি Phovia-র রং বসানো। ১–৬ নম্বর section-এ `phovia-` prefix দিয়ে আলাদা variable বানানোর পদ্ধতিটা ধারণা বোঝার জন্য রাখা হলো।
 
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+## ⚠️ NOTICE: Dark mode support দিতে চাইলে hard-coded রং ব্যবহার করা যাবে না
+
+**`text-black`, `text-white`, `bg-white`, `bg-black`, `text-gray-500`, `bg-[#5B4CF0]` — এ ধরনের hard-coded রঙের class দেওয়া যাবে না।**
+
+**কারণ:** এগুলোর রং **সবসময় একই থাকে**, `.dark` class যোগ হলেও বদলায় না। ফলে dark mode-এ কালো background-এর ওপর `text-black` লেখা **অদৃশ্য** হয়ে যাবে, আর `bg-white` card dark page-এর মাঝে সাদা হয়ে চোখে লাগবে।
+
+**সমাধান:** সবসময় **semantic token** ব্যবহার করুন — এগুলো light/dark অনুযায়ী নিজে থেকে বদলায়:
+
+| ❌ Hard-coded (করবেন না) | ✅ Semantic token (করবেন) |
+|---|---|
+| `text-black` | `text-foreground` |
+| `text-white` (primary button-এর ওপর) | `text-primary-foreground` |
+| `bg-white` | `bg-background` (page) / `bg-card` (card) |
+| `bg-gray-50`, `bg-gray-100` | `bg-muted` / `bg-secondary` |
+| `text-gray-500`, `text-gray-600` | `text-muted-foreground` |
+| `border-gray-200` | `border-border` |
+| `bg-[#5B4CF0]`, `text-[#5B4CF0]` | `bg-primary`, `text-primary` |
+| `text-red-600` | `text-destructive` |
+| `text-green-600` | `text-success` |
+
+**একমাত্র ব্যতিক্রম:** যে রং theme-এর সাথে বদলানো উচিত **না** — যেমন ছবির ওপরে কালো overlay-এর ওপর লেখা (`text-white`), বা brand logo-র নির্দিষ্ট রং। ছবি dark mode-এ বদলায় না, তাই সেখানে `text-white` ঠিক আছে।
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 ---
 
 ## ১. মূল ধারণা — ৩টা অংশ
