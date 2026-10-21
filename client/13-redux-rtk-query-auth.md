@@ -56,8 +56,8 @@ Backend (Express + Passport)  → response + Set-Cookie
 |---|---|---|
 | **ক. Setup** | ১–১১ | Redux DevTools-এ `baseApi` দেখা যাবে, API call করার সব প্রস্তুতি শেষ |
 | **খ. Register → Verify → Login** | ১২–১৯ | পুরো flow চলবে, কিন্তু login-এর পরে cookie set হবে না (ইচ্ছা করেই এখানে থামব) |
-| **গ. Cookie ও Protected route** | ২০–২৫ | Cookie set হবে, Google login চলবে, Navbar logged-in user-কে চিনবে |
-| **ঘ. Logout ও Cache** | ২৬–২৮ | Reload ছাড়াই logout হবে |
+| **গ. Cookie ও Protected route** | ২০–২৪ | Cookie set হবে, Google login চলবে, Navbar logged-in user-কে চিনবে |
+| **ঘ. Logout ও Cache** | ২৫–২৮ | Reload ছাড়াই logout হবে |
 
 ### শেষে যে ফাইলগুলো থাকবে
 
@@ -70,14 +70,14 @@ src/
 ├── redux/
 │   ├── store.ts                ← ধাপ ২, ১১
 │   ├── hook.ts                 ← ধাপ ৪
-│   ├── baseApi.ts              ← ধাপ ১০, ২৭
+│   ├── baseApi.ts              ← ধাপ ১০, ২৬
 │   ├── axiosBaseQuery.ts       ← ধাপ ৯
 │   └── features/
 │       └── auth/
-│           └── auth.api.ts     ← ধাপ ১২, ১৮, ২৪, ২৬, ২৭
+│           └── auth.api.ts     ← ধাপ ১২, ১৮, ২৩, ২৫, ২৬, ২৮
 ├── types/
 │   ├── index.ts                ← ধাপ ৮
-│   └── auth.type.ts            ← ধাপ ১২, ১৮, ২৪
+│   └── auth.type.ts            ← ধাপ ১২, ১৮
 ├── utils/
 │   └── getErrorMessage.ts      ← ধাপ ১৪
 └── pages/
@@ -194,7 +194,7 @@ export const useAppDispatch = useDispatch.withTypes<AppDispatch>();
 
 💡 **কেন:** সাধারণ `useSelector` জানে না আমাদের store-এ কী কী আছে। তাই প্রতিবার লিখতে হতো `useSelector((state: RootState) => ...)`। `.withTypes<RootState>()` দিয়ে একবার type বসিয়ে নতুন hook বানালে আর লিখতে হয় না, আর editor-এ suggestion-ও আসে।
 
-**নিয়ম:** project-এ সবসময় `useAppSelector` আর `useAppDispatch` ব্যবহার করব, সাধারণ `useSelector`/`useDispatch` না। (`useAppDispatch` প্রথম কাজে লাগবে ধাপ ২৮-এ।)
+**নিয়ম:** project-এ সবসময় `useAppSelector` আর `useAppDispatch` ব্যবহার করব, সাধারণ `useSelector`/`useDispatch` না। (`useAppDispatch` প্রথম কাজে লাগবে ধাপ ২৭-এ।)
 
 ✅ **যাচাই:** ফাইলে কোনো TypeScript error নেই।
 
@@ -249,7 +249,7 @@ Vite নিরাপত্তার জন্য `.env`-এর সব variable b
 > ⚠️ সংশোধন (গুরুত্বপূর্ণ): নোটে লেখা ছিল "public যেগুলো সেগুলোর সামনে VITE লিখতে হয়"। কথাটা উল্টো দিক থেকেও বোঝা দরকার: **`VITE_` দিলেই সেটা public হয়ে যায়।** Build-এর সময় মানটা JavaScript ফাইলে সরাসরি বসে যায়, যেকোনো user DevTools খুলে দেখতে পারে। তাই frontend-এর `.env`-এ কখনো secret (JWT secret, DB password, Stripe secret key) রাখা যাবে না। এখানে শুধু এমন জিনিস রাখব যেটা সবাই দেখলেও সমস্যা নেই, যেমন API-র URL।
 
 **২. URL-এর শেষে `/` না**
-আমাদের endpoint-গুলো `/` দিয়ে শুরু (`/auth/login`)। Base URL-এর শেষেও `/` থাকলে জোড়া লাগিয়ে হয় `…/api/v1//auth/login`। Axios নিজে এই ডাবল slash ঠিক করে নেয়, কিন্তু যেখানে আমরা নিজে string জোড়া লাগাই (যেমন ধাপ ২৩-এ Google login-এ `` `${config.baseUrl}/auth/google` ``), সেখানে ভাঙবে। তাই নিয়ম: শেষে slash না।
+আমাদের endpoint-গুলো `/` দিয়ে শুরু (`/auth/login`)। Base URL-এর শেষেও `/` থাকলে জোড়া লাগিয়ে হয় `…/api/v1//auth/login`। Axios নিজে এই ডাবল slash ঠিক করে নেয়, কিন্তু যেখানে আমরা নিজে string জোড়া লাগাই (যেমন ধাপ ২২-এ Google login-এ `` `${config.baseUrl}/auth/google` ``), সেখানে ভাঙবে। তাই নিয়ম: শেষে slash না।
 
 **৩. `dotenv` install লাগে না**
 Backend-এ (Node) `.env` পড়তে `dotenv` লাগে। Vite নিজেই `.env` পড়ে, তাই frontend-এ লাগে না।
@@ -544,7 +544,7 @@ Axios 2xx ছাড়া সব status-এ error throw করে। আমর�
 🛠️ **কাজ:**
 
 ```ts
-// src/redux/baseApi.ts  (প্রথম রূপ — ধাপ ২৭-এ tagTypes যোগ হবে)
+// src/redux/baseApi.ts  (প্রথম রূপ — ধাপ ২৬-এ tagTypes যোগ হবে)
 import { createApi } from "@reduxjs/toolkit/query/react";
 import axiosBaseQuery from "./axiosBaseQuery";
 
@@ -637,7 +637,7 @@ baseApi.reducerPath  // = "baseApi"
 | `baseApi.middleware`-এর কাজ | উদাহরণ |
 |---|---|
 | Cache কতক্ষণ থাকবে হিসাব রাখা | কোনো component আর data ব্যবহার না করলে ৬০ সেকেন্ড পরে cache মুছে দেয় |
-| Tag invalidate হলে আবার fetch করা | logout হলে `USER` tag invalidate → `/user/me` আবার আনা (ধাপ ২৭) |
+| Tag invalidate হলে আবার fetch করা | logout হলে `USER` tag invalidate → `/user/me` আবার আনা (ধাপ ২৬) |
 | Polling, refetchOnFocus ইত্যাদি | নির্দিষ্ট সময় পর পর data আনা |
 
 সহজ কথায়: **reducer = মেমরি, middleware = হাত-পা।** Middleware না দিলে cache থাকবে, কিন্তু auto refetch, cache invalidation কিছুই কাজ করবে না। RTK Query তখন console-এ সতর্কও করে: *"Middleware for RTK-Query API at reducerPath "baseApi" has not been added to the store."*
@@ -763,11 +763,11 @@ export const { useRegisterMutation, useLoginMutation } = authApi;
 ```
 
 💡 **লাইনগুলোর মানে:**
-- **`injectEndpoints`:** `baseApi`-তে নতুন endpoint ঢুকিয়ে দেয় আর একই API ফেরত দেয়। তাই `authApi` আর `baseApi` আসলে **একই জিনিস**, শুধু `authApi`-র type-এ auth-এর endpoint-গুলো জানা আছে। (এই কথাটা ধাপ ২৮-এ খুব কাজে লাগবে।)
+- **`injectEndpoints`:** `baseApi`-তে নতুন endpoint ঢুকিয়ে দেয় আর একই API ফেরত দেয়। তাই `authApi` আর `baseApi` আসলে **একই জিনিস**, শুধু `authApi`-র type-এ auth-এর endpoint-গুলো জানা আছে। (এই কথাটা ধাপ ২৭-এ খুব কাজে লাগবে।)
 - **`builder.mutation<Response, Arg>`:** প্রথম type = backend কী ফেরত দেবে, দ্বিতীয় type = আমরা কী পাঠাব। এটা দিলে component-এ `login({ ... })` লিখতে গেলে editor বলে দেয় কী কী field লাগবে, আর `res.data` লিখলে suggestion আসে।
 - **`data: userInfo`:** `body` না, `data` (ধাপ ৯)।
 - **Hook-এর নাম নিজে থেকে তৈরি হয়:** endpoint-এর নাম `login` + ধরন `mutation` → `useLoginMutation`। নিয়ম: `use` + নাম (প্রথম অক্ষর বড়) + `Query`/`Mutation`।
-- **`export const authApi`:** ধাপ ২৮-এ Navbar-এ `authApi.util.resetApiState()` লাগবে, তাই `authApi`-ও export করা হলো।
+- **`export const authApi`:** ধাপ ২৭-এ Navbar-এ `authApi.util.resetApiState()` লাগবে, তাই `authApi`-ও export করা হলো।
 
 > ⚠️ সংশোধন: নোটে এই ফাইলের path কয়েক জায়গায় আলাদা লেখা ছিল: `src/features/auth/auth.api.ts` (মাঝে `redux` নেই) আর `redux/features/auth/auth.type.ts` (শিরোনামে `.type`, কিন্তু কোড `auth.api`-র)। সঠিক path একটাই: **`src/redux/features/auth/auth.api.ts`**।
 
@@ -782,7 +782,7 @@ RTK Query-তে endpoint দুই রকম:
 | কখন চলে | component render হলেই **নিজে থেকে** | আমরা function **ডাকলে তবেই** (যেমন submit চাপলে) |
 | Cache | রাখে, একই data আবার লাগলে request পাঠায় না | রাখে না |
 | Hook ফেরত দেয় | **object**: `{ data, isLoading, error, … }` | **array (tuple)**: `[triggerFunction, { isLoading, … }]` |
-| আমাদের উদাহরণ | `userInfo` (`/user/me`, ধাপ ২৪) | `register`, `login`, `sendOtp`, `verifyOtp`, `logout` |
+| আমাদের উদাহরণ | `userInfo` (`/user/me`, ধাপ ২৩) | `register`, `login`, `sendOtp`, `verifyOtp`, `logout` |
 
 "Mutation" শব্দের মানে পরিবর্তন। Register-এ নতুন user তৈরি হয়, login-এ server-এ নতুন token তৈরি হয়, তাই এগুলো mutation। Login-এ "পড়ছি" মনে হলেও server-এ অবস্থা বদলাচ্ছে, আর আমরা চাই এটা submit চাপলে তবেই চলুক, page খুললেই না।
 
@@ -1193,6 +1193,8 @@ React-এর নিয়ম: render-এর সময় শুধু UI হি�
 > if (!email) return <Navigate to="/" replace />;
 > ```
 > এটা আরও সরাসরি, এক মুহূর্তের জন্য খালি page-ও দেখায় না। Teacher `useEffect` দিয়ে দেখিয়েছেন, তাই সেটাই রাখা হলো।
+
+> নোট — Teacher-এর development কৌশল: Teacher-এর কোডে এই effect comment করে রাখা ছিল (`//! Needed - Turned off for development`)। কারণ redirect চালু থাকলে Verify page-এর ডিজাইন দেখতে প্রতিবার নতুন করে register করে আসতে হয়। ডিজাইনের সময় সাময়িক বন্ধ রাখলে সরাসরি `/verify` খুলে কাজ করা যায়। কিন্তু **কাজ শেষে অবশ্যই আবার চালু করবেন** (comment-এই লেখা: "Needed"), নাহলে email ছাড়াই যে কেউ page খুলতে পারবে।
 
 ✅ **যাচাই:**
 - Register করুন → `/verify`-এ যায় আর "Verify: আপনার@email.com" দেখায়।
@@ -1763,6 +1765,8 @@ import config from "@/config";
 ```
 
 `config.baseUrl` ব্যবহার করায় backend-এর URL বদলালে শুধু `.env` বদলালেই হয়।
+
+> ⚠️ সংশোধন: নোটে লেখা ছিল "config দিয়ে দিচ্ছি যাতে **frontend**-এর base URL বদলালেও ঠিক থাকে"। `config.baseUrl`-এ আছে **backend**-এর URL (`VITE_BASE_URL`, ধাপ ৬), কারণ `/auth/google` route backend-এর। উদ্দেশ্য ঠিকই ছিল: backend deploy হয়ে URL বদলালে কোড না ছুঁয়ে শুধু `.env` বদলালেই চলবে।
 
 > ⚠️ সংশোধন: নোটে ছিল `window.open(url)`। `window.open` একটা **নতুন tab** খোলে। Google login শেষে backend frontend-এ redirect করবে ঐ নতুন tab-এ, আর পুরনো tab-এ login page খোলাই পড়ে থাকবে, user-এর কাছে দুটো tab। `window.location.href = url` একই tab-এ যায়, login শেষে একই tab-এ Home-এ ফেরে।
 >
@@ -2435,4 +2439,4 @@ export default function Navbar() {
 - [ ] সরাসরি `/verify` লিখলে Home-এ যায়, Back চাপলে আটকায় না
 - [ ] "Continue with Google" একই tab-এ যায় আর logged in হয়ে ফেরে
 - [ ] Dark mode-এ toast, Verify page, Navbar সব পড়া যায়
-- [ ] Console-এ কোনো warning/error নেই (৪০৩ শুধু logged-out অবস্থায় `/user/me`-এর জন্য, সেটা স্বাভাবিক)
+- [ ] Console-এ কোনো warning/error নেই (403 শুধু logged-out অবস্থায় `/user/me`-এর জন্য, সেটা স্বাভাবিক)
