@@ -79,7 +79,8 @@ const require = createRequire(import.meta.url);
 `,
 	},
 	// build শেষ হলে email template copy
-	onSuccess: "cp -r src/app/utils/templates dist/templates",
+	//onSuccess: "cp -r src/app/utils/templates dist/templates", perfectly hocche na
+	onSuccess: "mkdir -p dist/templates && cp -r src/app/utils/templates/. dist/templates/",
 });
 ```
 
