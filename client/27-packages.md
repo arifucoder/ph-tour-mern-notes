@@ -2,6 +2,8 @@
 
 `package.json`-এর প্রতিটা package কেন আছে, project-এর কোথায় ব্যবহার হচ্ছে, আর নতুন project-এ কোন command দিয়ে বসাতে হয়। প্রতিটা package-এর "কোথায়" কলামটা আপনার `src` folder খুঁজে লেখা।
 
+> 🔗 **Repo:** [arifucoder/phovia-tour-client-v0](https://github.com/arifucoder/phovia-tour-client-v0)
+
 > নোট: সব command `bun` দিয়ে। Version-গুলো আপনার `package.json` থেকে নেওয়া, পুরনো কিছু দিয়ে বদলানো হয়নি।
 
 ---
